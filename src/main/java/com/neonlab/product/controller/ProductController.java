@@ -3,7 +3,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
-import com.neonlab.common.expectations.ProductNotFoundException;
 import com.neonlab.product.apis.DeleteProductApi;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.apis.AddProductApi;
@@ -38,7 +37,7 @@ public class ProductController {
         } catch (IOException e) {
             // Handle errors related to file processing
             return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to process file: " + e.getMessage(), null);
-        } catch (Exception e) {
+        }catch (Exception e) {
             // Catch-all for any other unexpected exceptions
             return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred: " + e.getMessage(), null);
         }

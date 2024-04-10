@@ -2,6 +2,7 @@ package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
+import com.neonlab.common.expectations.ProductUniqueCodeAlreadyExistsException;
 import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.ProductRequestDto;
@@ -24,10 +25,13 @@ public class AddProductApi {
 
             ProductDto productDto = productService.addProduct(product);
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully", productDto);
-        } catch (InvalidInputException e) {
+        }catch (InvalidInputException e) {
 
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
-        } catch (Exception e) {
+        }catch (ProductUniqueCodeAlreadyExistsException e) {
+
+            return new ApiOutput<>(HttpStatus.ALREADY_REPORTED.value(), e.getMessage(),null);
+        }catch (Exception e) {
 
             return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred while adding the product", null);
         }

@@ -1,5 +1,5 @@
 package com.neonlab.product.apis;
-
+import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.utilities.StringUtil;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
+@Loggable
 public class DeleteProductApi {
 
     @Autowired

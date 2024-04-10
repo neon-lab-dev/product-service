@@ -18,6 +18,7 @@ public class ProductDto {
     private Units units;
     private String variety;
     private Integer quantity;
+    private String description;
 
 
 

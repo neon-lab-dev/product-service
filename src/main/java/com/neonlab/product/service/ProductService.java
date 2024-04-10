@@ -2,6 +2,7 @@ package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.ProductNotFoundException;
+import com.neonlab.common.expectations.ProductUniqueCodeAlreadyExistsException;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.ProductRequestDto;
 import com.neonlab.product.entities.Product;
@@ -22,7 +23,12 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public ProductDto addProduct(ProductRequestDto productReqDto) {
+    public ProductDto addProduct(ProductRequestDto productReqDto) throws ProductUniqueCodeAlreadyExistsException {
+        Boolean isExist = productRepository.existsByCode(productReqDto.getCode());
+
+        if (isExist) {
+            throw new ProductUniqueCodeAlreadyExistsException("Product unique code already exists");
+        }
         try {
             var product = new Product();
             product.setName(productReqDto.getName());
@@ -37,10 +43,10 @@ public class ProductService {
             product.setQuantity(productReqDto.getQuantity());
             product.setTags(productReqDto.getTags());
             product.setVariety(productReqDto.getVariety());
-
             productRepository.save(product);
             return ProductDto.parse(product);
-        } catch (Exception e) {
+
+        }catch (Exception e) {
             // Throw an internal server error exception
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error. Unable to add product.");
         }
