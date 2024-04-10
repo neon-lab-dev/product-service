@@ -3,26 +3,38 @@ import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.utilities.StringUtil;
-import com.neonlab.product.DTO.ProductDto;
-import com.neonlab.product.entities.Product;
+import com.neonlab.product.dtos.ProductDto;
+import com.neonlab.product.dtos.ProductRequestDto;
 import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import java.util.Optional;
+
+
 @Loggable
 @Service
 public class AddProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<ProductDto>createProduct(@RequestBody Product product) throws InvalidInputException {
-        validate(product);
-        ProductDto productDto = productService.addProduct(product);
-        return new ApiOutput<>(HttpStatus.CREATED.value(),"Product Added Successfull",productDto);
+    public ApiOutput<ProductDto> createProduct(ProductRequestDto product) {
+        try {
+            validate(product); // This can throw InvalidInputException
+
+            ProductDto productDto = productService.addProduct(product);
+            return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully", productDto);
+        } catch (InvalidInputException e) {
+
+            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
+        } catch (Exception e) {
+
+            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred while adding the product", null);
+        }
     }
 
-    private void validate (Product product) throws InvalidInputException {
+
+    private void validate (ProductRequestDto product) throws InvalidInputException {
         if(StringUtil.isNullOrEmpty(product.getName())){
             throw new InvalidInputException("Name of The Product is Mandatory");
         }
@@ -35,20 +47,15 @@ public class AddProductApi {
         if(StringUtil.isNullOrEmpty(product.getCode())){
             throw new InvalidInputException("Product code is Mandatory");
         }
-        if(StringUtil.isNullOrEmpty(product.getUnits().getUnit())){
+        if(product.getUnits() == null || StringUtil.isNullOrEmpty(product.getUnits().getUnit())){
             throw new InvalidInputException("Product Units is Mandatory");
         }
         if(StringUtil.isNullOrEmpty(product.getVariety())){
             throw new InvalidInputException("Product Variety is Mandatory");
         }
-        if(product.getPrice() == null){
-            throw new InvalidInputException("Product Price is Mandatory");
-        }
-        if(product.getDiscountPrice() == null){
-            throw new InvalidInputException("Product Discount Price is Mandatory");
-        }
-        if(product.getQuantity() == null){
-            throw new InvalidInputException("Product Quantity is Mandatory");
-        }
+        Optional.ofNullable(product.getPrice())
+                .orElseThrow(() -> new InvalidInputException("Product Price is Mandatory"));
+        Optional.ofNullable(product.getQuantity())
+                .orElseThrow(() -> new InvalidInputException("Product Quantity is Mandatory"));
     }
 }

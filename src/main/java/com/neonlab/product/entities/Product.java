@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -15,12 +16,14 @@ import java.math.BigDecimal;
         @Index(name = "idx_brand",columnList = "brand"),
         @Index(name = "idx_code",columnList = "code")
 })
+
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Column(name = "name",unique = true,nullable = false)
-    private String name;//not null index unique
+    @Column(name = "name",nullable = false)
+    private String name;//not null index
     @Column(name = "category",nullable = false)
     private String category;//not null index
     @Column(name = "sub_category",nullable = false)
@@ -34,8 +37,7 @@ public class Product {
     @Column(name = "price",nullable = false)
     private BigDecimal price;//not null
     @Column(name = "discount_price",nullable = false)
-    private BigDecimal discountPrice;//not null
-
+    private BigDecimal discountPrice = BigDecimal.valueOf(0.0);//not null
     @Enumerated(EnumType.STRING)
     private Units units;//not null
     @Column(name = "variety",nullable = false)

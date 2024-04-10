@@ -1,8 +1,6 @@
-package com.neonlab.product.DTO;
+package com.neonlab.product.dtos;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.enums.Units;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
 
@@ -17,10 +15,11 @@ public class ProductDto {
     private String code;
     private BigDecimal price;
     private BigDecimal discountPrice;
-    @Enumerated(EnumType.STRING)
     private Units units;
     private String variety;
     private Integer quantity;
+
+
 
     public static ProductDto parse(Product product){
         var mapper = new ModelMapper();
