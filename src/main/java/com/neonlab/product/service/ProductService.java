@@ -1,5 +1,7 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.dto.ApiOutput;
+import com.neonlab.common.expectations.ProductNotFoundException;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.ProductRequestDto;
 import com.neonlab.product.entities.Product;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 
 @Service
@@ -39,6 +43,19 @@ public class ProductService {
         } catch (Exception e) {
             // Throw an internal server error exception
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error. Unable to add product.");
+        }
+    }
+
+    public ApiOutput<?> deleteProductApi(String code) {
+
+        try {
+            Optional<Product> product = Optional.ofNullable(productRepository.findByCode(code)
+                    .orElseThrow(() -> new ProductNotFoundException("Product Not found")));
+
+            productRepository.delete(product.get());
+            return new ApiOutput<>(HttpStatus.OK.value(), "Product Deleted Successfully",null);
+        }catch (ProductNotFoundException e){
+            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(),null);
         }
     }
 }
