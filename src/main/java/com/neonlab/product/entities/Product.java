@@ -1,13 +1,12 @@
 package com.neonlab.product.entities;
 import com.neonlab.product.enums.Units;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "product", indexes = {
         @Index(name = "idx_name" ,columnList = "name"),
@@ -29,13 +28,13 @@ public class Product {
     @Column(name = "description",nullable = false)
     private String description;//not null
     @Column(name = "brand")
-    private String brand;//nullable
+    private String brand = "non-branded";
     @Column(name = "code",nullable = false,unique = true)
     private String code;//not null index unique
     @Column(name = "price",nullable = false)
-    private Integer price;//not null
+    private BigDecimal price;//not null
     @Column(name = "discount_price",nullable = false)
-    private Integer discountPrice;//not null
+    private BigDecimal discountPrice;//not null
 
     @Enumerated(EnumType.STRING)
     private Units units;//not null
