@@ -2,14 +2,15 @@ package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
-import com.neonlab.common.expectations.ProductNotFoundException;
-import com.neonlab.common.expectations.ProductQuantityNotSufficientException;
+import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.utilities.StringUtil;
+import com.neonlab.product.pojo.ProductDeleteReq;
 import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
+import java.util.Objects;
+
 
 
 @Service
@@ -19,27 +20,24 @@ public class DeleteProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<?>deleteProductApi(String code,Integer quantity){
+    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq){
 
         try {
-            validate(code,quantity);
-            String status = productService.deleteProductApi(code,quantity);
+            validate(productDeleteReq);
+            String status = productService.deleteProductApi(productDeleteReq);
             return new ApiOutput<>(HttpStatus.OK.value(), status,null);
-        }catch (InvalidInputException e){
+        }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        } catch (ProductNotFoundException e) {
-            return new ApiOutput<>(HttpStatus.NO_CONTENT.value(), e.getMessage());
-        } catch (ProductQuantityNotSufficientException e) {
-            return new ApiOutput<>(HttpStatus.FORBIDDEN.value(), e.getMessage());
         }
     }
 
-    public void validate(String code, Integer quantity) throws InvalidInputException {
+    public void validate(ProductDeleteReq productDeleteReq) throws InvalidInputException {
 
-        if(StringUtil.isNullOrEmpty(code)){
+        if(StringUtil.isNullOrEmpty(productDeleteReq.getCode())){
             throw new InvalidInputException("Product code is Mandatory");
         }
-        Optional.ofNullable(quantity)
-                .orElseThrow(() -> new InvalidInputException("Product Quantity is Mandatory"));
+        if(Objects.isNull(productDeleteReq.getQuantity())) {
+            throw new InvalidInputException("Product Quantity is Mandatory");
+        }
     }
 }

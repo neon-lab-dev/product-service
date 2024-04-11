@@ -10,8 +10,4 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product,String> {
     Optional<Product> findByCode(String code);
-
-    //Boolean existsByCode(String code);
-
-    String BRAND = "none-branded";
 }

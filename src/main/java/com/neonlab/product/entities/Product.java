@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
-import static com.neonlab.product.repository.ProductRepository.BRAND;
-
 
 @Entity
 @Data
@@ -33,7 +31,7 @@ public class Product {
     @Column(name = "description",nullable = false)
     private String description;//not null
     @Column(name = "brand")
-    private String brand = BRAND;
+    private String brand;
     @Column(name = "code",nullable = false,unique = true)
     private String code;//not null index unique
     @Column(name = "price",nullable = false)

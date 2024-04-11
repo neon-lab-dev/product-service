@@ -1,10 +1,8 @@
 package com.neonlab.product.dtos;
-import com.neonlab.product.entities.Product;
 import com.neonlab.product.enums.Units;
 import lombok.Data;
-import org.modelmapper.ModelMapper;
-
 import java.math.BigDecimal;
+
 
 @Data
 public class ProductDto {
@@ -19,11 +17,4 @@ public class ProductDto {
     private String variety;
     private Integer quantity;
     private String description;
-
-
-
-    public static ProductDto parse(Product product){
-        var mapper = new ModelMapper();
-        return  mapper.map(product, ProductDto.class);
-    }
 }
