@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
+import static com.neonlab.product.repository.ProductRepository.BRAND;
+
 
 @Entity
 @Data
@@ -31,11 +33,11 @@ public class Product {
     @Column(name = "description",nullable = false)
     private String description;//not null
     @Column(name = "brand")
-    private String brand = "non-branded";
+    private String brand = BRAND;
     @Column(name = "code",nullable = false,unique = true)
     private String code;//not null index unique
     @Column(name = "price",nullable = false)
-    private BigDecimal price;//not null
+    private BigDecimal price =  BigDecimal.valueOf(0.0);//not null
     @Column(name = "discount_price",nullable = false)
     private BigDecimal discountPrice = BigDecimal.valueOf(0.0);//not null
     @Enumerated(EnumType.STRING)

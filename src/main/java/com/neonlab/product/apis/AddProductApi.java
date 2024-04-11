@@ -5,11 +5,12 @@ import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ProductUniqueCodeAlreadyExistsException;
 import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
-import com.neonlab.product.dtos.ProductRequestDto;
 import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -19,7 +20,7 @@ public class AddProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<ProductDto> createProduct(ProductRequestDto product) {
+    public ApiOutput<ProductDto> createProduct(ProductDto product) {
         try {
             validate(product); // This can throw InvalidInputException
 
@@ -27,18 +28,25 @@ public class AddProductApi {
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully", productDto);
         }catch (InvalidInputException e) {
 
-            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
+            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }catch (ProductUniqueCodeAlreadyExistsException e) {
 
-            return new ApiOutput<>(HttpStatus.ALREADY_REPORTED.value(), e.getMessage(),null);
+            return new ApiOutput<>(HttpStatus.ALREADY_REPORTED.value(), e.getMessage());
+        }catch(NullPointerException e) {
+
+            return new ApiOutput<>(HttpStatus.NO_CONTENT.value(), e.getMessage());
         }catch (Exception e) {
 
-            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred while adding the product", null);
+            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred while adding the product");
         }
     }
 
 
-    private void validate (ProductRequestDto product) throws InvalidInputException {
+    private void validate (ProductDto product) throws InvalidInputException {
+
+        if(Objects.isNull(product)){
+            throw new NullPointerException("Product is Empty or Null Please Add something");
+        }
         if(StringUtil.isNullOrEmpty(product.getName())){
             throw new InvalidInputException("Name of The Product is Mandatory");
         }

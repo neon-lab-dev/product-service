@@ -6,7 +6,6 @@ import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.product.apis.DeleteProductApi;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.apis.AddProductApi;
-import com.neonlab.product.dtos.ProductRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -29,22 +28,22 @@ public class ProductController {
             var mapper = new ObjectMapper();
             byte[] bytes = file.getBytes();
             var jsonString = new String(bytes);
-            ProductRequestDto product = mapper.readValue(jsonString, ProductRequestDto.class);
+            ProductDto product = mapper.readValue(jsonString, ProductDto.class);
             return addProductApi.createProduct(product);
         } catch (JsonProcessingException e) {
             // Handle JSON parsing errors
-            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), "Failed to parse product data from file: " + e.getMessage(), null);
+            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), "Failed to parse product data from file: " + e.getMessage());
         } catch (IOException e) {
             // Handle errors related to file processing
-            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to process file: " + e.getMessage(), null);
+            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to process file: " + e.getMessage());
         }catch (Exception e) {
             // Catch-all for any other unexpected exceptions
-            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred: " + e.getMessage(), null);
+            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/delete")
-    public ApiOutput<?>deleteProduct(@RequestParam String code){
-            return deleteProductApi.deleteProductApi(code);
+    public ApiOutput<?>deleteProduct(@RequestParam String code,@RequestParam Integer quantity){
+            return deleteProductApi.deleteProductApi(code,quantity);
     }
 }

@@ -1,9 +1,8 @@
 package com.neonlab.product.dtos;
-
 import com.neonlab.product.enums.Units;
 import lombok.Data;
-
 import java.math.BigDecimal;
+
 
 @Data
 public class ProductRequestDto {
