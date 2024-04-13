@@ -10,6 +10,7 @@ import com.neonlab.product.apis.AddProductApi;
 import com.neonlab.product.pojo.ProductDeleteReq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +19,8 @@ import java.util.List;
 
 @RestController
 @Loggable
-@RequestMapping("/product/v1")
+@RequestMapping("/v1/product")
+@PreAuthorize("hasAnyRole('ADMIN')")
 @RequiredArgsConstructor
 public class ProductController {
 
