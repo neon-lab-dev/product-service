@@ -5,10 +5,9 @@ import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.pojo.ProductDeleteReq;
 import com.neonlab.product.repository.ProductRepository;
-import com.neonlab.product.utils.MapperUtils;
+import com.neonlab.common.utilities.ObjectMapperUtils;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
@@ -17,6 +16,7 @@ import java.util.Optional;
 
 @Service
 @Loggable
+@Slf4j
 public class ProductService {
 
     public final static String BRAND = "non-branded";
@@ -26,8 +26,6 @@ public class ProductService {
     public final static String MESSAGE = "Product unique code already exists or This Product Already Exists";
 
     public final static String DELETE_MESSAGE = "Product Quantity Reduce Successfully";
-
-    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
     private ProductRepository productRepository;
@@ -41,39 +39,38 @@ public class ProductService {
         }
 
         //productReqDto to Product
-        Product product = MapperUtils.map(productReqDto,Product.class);
-        product.setBrand(BRAND);
+        Product product = ObjectMapperUtils.map(productReqDto,Product.class);
+        if(productReqDto.getBrand() == null) {
+            product.setBrand(BRAND);
+        }
         product.setTags(TAG);
         productRepository.save(product);
 
         //product to productDto
-        return MapperUtils.map(product,ProductDto.class);
+        return ObjectMapperUtils.map(product,ProductDto.class);
 
     }
 
-    public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  ServerException {
+    public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
 
-        Product product = productRepository.findByCode(productDeleteReq.getCode())
-                .orElseThrow(() -> new ServerException("Product Not found"));
-
+        Product product = getProductByCode(productDeleteReq.getCode());
         Integer existsQuantity = product.getQuantity();
-        if(existsQuantity>=productDeleteReq.getQuantity()){
-            Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
-            product.setQuantity(currentQuantity);
-            productRepository.save(product);
-            log.warn("Now Your Product Quantity is {}", currentQuantity);
-            return  DELETE_MESSAGE;
-        }
-        throw new ServerException("Product quantity is not Sufficient");
+        Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
+        product.setQuantity(currentQuantity);
+        productRepository.save(product);
+        log.warn("Now Your Product Quantity is {}", currentQuantity);
+        return  DELETE_MESSAGE;
+    }
 
+    public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
+        Product product = getProductByCode(code);
+        return product.getQuantity()>=quantity;
     }
 
     @Transactional
     public ProductDto updateProduct(ProductDto product) throws ServerException, InvalidInputException {
         boolean flag = true;
-        Product existProducts = productRepository.findByCode(product.getCode())
-                .orElseThrow(() -> new ServerException("Product Not found"));
-
+        Product existProducts = getProductByCode(product.getCode());
         if(product.getName() != null){
             flag = false;
             existProducts.setName(product.getName());
@@ -115,9 +112,14 @@ public class ProductService {
             existProducts.setVariety(product.getVariety());
         }
         if(flag){
-            throw new InvalidInputException("Please add atleast one value to update");
+            throw new InvalidInputException("Please add at-least one value to update");
         }
         productRepository.save(existProducts);
-        return MapperUtils.map(existProducts,ProductDto.class);
+        return ObjectMapperUtils.map(existProducts,ProductDto.class);
+    }
+
+    private Product getProductByCode(String code) throws InvalidInputException {
+        return productRepository.findByCode(code)
+                .orElseThrow(() -> new InvalidInputException("Product Not found with code "+code));
     }
 }

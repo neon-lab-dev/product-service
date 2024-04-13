@@ -31,13 +31,16 @@ public class DeleteProductApi {
         }
     }
 
-    public void validate(ProductDeleteReq productDeleteReq) throws InvalidInputException {
+    public void validate(ProductDeleteReq productDeleteReq) throws InvalidInputException, ServerException {
 
         if(StringUtil.isNullOrEmpty(productDeleteReq.getCode())){
             throw new InvalidInputException("Product code is Mandatory");
         }
         if(Objects.isNull(productDeleteReq.getQuantity())) {
             throw new InvalidInputException("Product Quantity is Mandatory");
+        }
+        if(!productService.isReduceQuantityValid(productDeleteReq.getCode(),productDeleteReq.getQuantity())){
+            throw new InvalidInputException("Product Quantity is not sufficient to reduce");
         }
     }
 }

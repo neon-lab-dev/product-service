@@ -1,18 +1,19 @@
 package com.neonlab.product.controller;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
-import com.neonlab.common.expectations.ServerException;
+import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.product.apis.DeleteProductApi;
 import com.neonlab.product.apis.UpdateProductApi;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.apis.AddProductApi;
 import com.neonlab.product.pojo.ProductDeleteReq;
-import com.neonlab.product.utils.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 
 
 @RestController
@@ -26,14 +27,15 @@ public class ProductController {
     private final UpdateProductApi updateProductApi;
 
     @PostMapping("/add")
-    public ApiOutput<ProductDto> addProduct(@RequestParam("productDetails") String productJson, @RequestParam("file") MultipartFile file) {
+    public ApiOutput<ProductDto> addProduct(
+                                @RequestParam("productDetails") String productJson,
+                                @RequestParam("files") List<MultipartFile> files) {
 
         try {
-            ProductDto product = JsonUtil.readObjectFromJson(productJson,ProductDto.class);
+            ProductDto product = JsonUtils.readObjectFromJson(productJson,ProductDto.class);
             return addProductApi.createProduct(product);
-        } catch (ServerException e) {
-            // Catch-all for any other unexpected exceptions
-            return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+        } catch (JsonParseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -43,11 +45,13 @@ public class ProductController {
     }
 
     @PutMapping("/update")
-    public ApiOutput<ProductDto>updateProduct(@RequestParam("ProductDetails") String productJson,@RequestParam("file") MultipartFile file){
+    public ApiOutput<ProductDto>updateProduct(
+                                  @RequestParam("ProductDetails") String productJson,
+                                  @RequestParam("files") List<MultipartFile> files){
         try {
-            ProductDto productDto = JsonUtil.readObjectFromJson(productJson, ProductDto.class);
+            ProductDto productDto = JsonUtils.readObjectFromJson(productJson, ProductDto.class);
             return updateProductApi.updateProduct(productDto);
-        }catch (ServerException e){
+        }catch (JsonParseException e){
             return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
         }
     }
