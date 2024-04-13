@@ -1,4 +1,4 @@
-package com.neonlab.product.pojo;
+package com.neonlab.product.dtos;
 import lombok.Data;
 
 

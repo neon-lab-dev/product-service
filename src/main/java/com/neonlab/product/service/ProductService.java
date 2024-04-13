@@ -1,15 +1,18 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.dto.DocumentDto;
+import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Product;
-import com.neonlab.product.pojo.ProductDeleteReq;
+import com.neonlab.product.dtos.ProductDeleteReq;
 import com.neonlab.product.repository.ProductRepository;
 import com.neonlab.common.utilities.ObjectMapperUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.Optional;
 
 
@@ -27,10 +30,12 @@ public class ProductService {
 
     public final static String DELETE_MESSAGE = "Product Quantity Reduce Successfully";
 
+    public final static String WHOLE_PRODUCT_DELETE_MESSAGE = "Product Deleted Successfully";
+
     @Autowired
     private ProductRepository productRepository;
 
-    public ProductDto addProduct(ProductDto productReqDto) throws InvalidInputException, ServerException {
+    public ProductDto addProduct(ProductDto productReqDto, DocumentDto image) throws InvalidInputException, ServerException {
 
         Optional<Product> existsProduct = productRepository.findByCode(productReqDto.getCode());
 
@@ -47,8 +52,10 @@ public class ProductService {
         productRepository.save(product);
 
         //product to productDto
-        return ObjectMapperUtils.map(product,ProductDto.class);
-
+        var productDto = ObjectMapperUtils.map(product,ProductDto.class);
+        productDto.setDocumentId(image.getDocumentId());
+        productDto.setDocumentName(image.getDocumentName());
+        return productDto;
     }
 
     public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
@@ -68,7 +75,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto updateProduct(ProductDto product) throws ServerException, InvalidInputException {
+    public ProductDto updateProduct(ProductDto product, DocumentDto images) throws ServerException, InvalidInputException {
         boolean flag = true;
         Product existProducts = getProductByCode(product.getCode());
         if(product.getName() != null){
@@ -115,11 +122,20 @@ public class ProductService {
             throw new InvalidInputException("Please add at-least one value to update");
         }
         productRepository.save(existProducts);
-        return ObjectMapperUtils.map(existProducts,ProductDto.class);
+        ProductDto productDto = ObjectMapperUtils.map(existProducts,ProductDto.class);
+        productDto.setDocumentName(images.getDocumentName());
+        productDto.setDocumentId(images.getDocumentId());
+        return productDto;
     }
 
+    public String deleteWholeProduct(ProductDeleteReq productDeleteReq) throws InvalidInputException {
+        Product product = getProductByCode(productDeleteReq.getCode());
+        productRepository.delete(product);
+        return WHOLE_PRODUCT_DELETE_MESSAGE;
+    }
     private Product getProductByCode(String code) throws InvalidInputException {
         return productRepository.findByCode(code)
                 .orElseThrow(() -> new InvalidInputException("Product Not found with code "+code));
     }
+
 }

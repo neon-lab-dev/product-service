@@ -4,7 +4,7 @@ import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.utilities.StringUtil;
-import com.neonlab.product.pojo.ProductDeleteReq;
+import com.neonlab.product.dtos.ProductDeleteReq;
 import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,12 +20,17 @@ public class DeleteProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq){
+    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq, boolean removeWholeProduct){
 
         try {
             validate(productDeleteReq);
-            String status = productService.deleteProductApi(productDeleteReq);
-            return new ApiOutput<>(HttpStatus.OK.value(), status,null);
+            if(removeWholeProduct){
+                String message = productService.deleteWholeProduct(productDeleteReq);
+                return new ApiOutput<>(HttpStatus.OK.value(), message,null);
+            }else {
+                String status = productService.deleteProductApi(productDeleteReq);
+                return new ApiOutput<>(HttpStatus.OK.value(), status, null);
+            }
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
