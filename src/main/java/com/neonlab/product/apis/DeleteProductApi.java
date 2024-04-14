@@ -20,17 +20,13 @@ public class DeleteProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq, boolean removeWholeProduct){
+    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq){
 
         try {
             validate(productDeleteReq);
-            if(removeWholeProduct){
-                String message = productService.deleteWholeProduct(productDeleteReq);
-                return new ApiOutput<>(HttpStatus.OK.value(), message,null);
-            }else {
-                String status = productService.deleteProductApi(productDeleteReq);
+            String status = productService.deleteProductApi(productDeleteReq);
                 return new ApiOutput<>(HttpStatus.OK.value(), status, null);
-            }
+
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }

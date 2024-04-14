@@ -1,7 +1,6 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.DocumentDto;
-import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Product;
@@ -12,7 +11,6 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 
@@ -53,14 +51,18 @@ public class ProductService {
 
         //product to productDto
         var productDto = ObjectMapperUtils.map(product,ProductDto.class);
-        productDto.setDocumentId(image.getDocumentId());
-        productDto.setDocumentName(image.getDocumentName());
+        productDto.setDocumentId(image.getId());
         return productDto;
     }
 
     public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
 
         Product product = getProductByCode(productDeleteReq.getCode());
+
+        if(productDeleteReq.getDeleteProduct()){
+            return deleteWholeProduct(product);
+        }
+
         Integer existsQuantity = product.getQuantity();
         Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
         product.setQuantity(currentQuantity);
@@ -72,6 +74,11 @@ public class ProductService {
     public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
         Product product = getProductByCode(code);
         return product.getQuantity()>=quantity;
+    }
+
+    public String deleteWholeProduct(Product product) {
+        productRepository.delete(product);
+        return WHOLE_PRODUCT_DELETE_MESSAGE;
     }
 
     @Transactional
@@ -106,9 +113,9 @@ public class ProductService {
             flag = false;
             existProducts.setPrice(product.getPrice());
         }
-        if(product.getDiscountPrice() != null){
+        if(product.getDiscountPercent() != null){
             flag = false;
-            existProducts.setDiscountPrice(product.getDiscountPrice());
+            existProducts.setDiscountPercent(product.getDiscountPercent());
         }
         if(product.getUnits() != null && product.getUnits().getUnit() != null){
             flag = false;
@@ -123,16 +130,10 @@ public class ProductService {
         }
         productRepository.save(existProducts);
         ProductDto productDto = ObjectMapperUtils.map(existProducts,ProductDto.class);
-        productDto.setDocumentName(images.getDocumentName());
-        productDto.setDocumentId(images.getDocumentId());
+        productDto.setDocumentId(images.getId());
         return productDto;
     }
 
-    public String deleteWholeProduct(ProductDeleteReq productDeleteReq) throws InvalidInputException {
-        Product product = getProductByCode(productDeleteReq.getCode());
-        productRepository.delete(product);
-        return WHOLE_PRODUCT_DELETE_MESSAGE;
-    }
     private Product getProductByCode(String code) throws InvalidInputException {
         return productRepository.findByCode(code)
                 .orElseThrow(() -> new InvalidInputException("Product Not found with code "+code));

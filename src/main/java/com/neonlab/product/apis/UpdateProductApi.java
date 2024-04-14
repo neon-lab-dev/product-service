@@ -45,8 +45,5 @@ public class UpdateProductApi {
         if(files.size()>4){
             throw new InvalidInputException("Cannot upload more than 4 images.");
         }
-        if(files.isEmpty()){
-            throw new InvalidInputException("Please Add at-least one file");
-        }
     }
 }

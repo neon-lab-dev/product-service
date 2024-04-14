@@ -6,4 +6,5 @@ import lombok.Data;
 public class ProductDeleteReq {
     private String code;
     private Integer quantity;
+    private Boolean deleteProduct;
 }

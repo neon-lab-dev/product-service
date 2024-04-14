@@ -36,8 +36,8 @@ public class Product {
     private String code;//not null index unique
     @Column(name = "price",nullable = false)
     private BigDecimal price =  BigDecimal.valueOf(0.0);//not null
-    @Column(name = "discount_price",nullable = false)
-    private BigDecimal discountPrice = BigDecimal.valueOf(0.0);//not null
+    @Column(name = "discount_percent")
+    private BigDecimal discountPercent = BigDecimal.valueOf(0.0);//not null
     @Enumerated(EnumType.STRING)
     private Units units;//not null
     @Column(name = "variety",nullable = false)

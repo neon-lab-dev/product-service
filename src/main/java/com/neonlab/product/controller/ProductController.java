@@ -40,11 +40,8 @@ public class ProductController {
     }
 
     @DeleteMapping("/delete")
-    public ApiOutput<?>deleteProduct(
-                        @RequestBody ProductDeleteReq productDeleteReq,
-                        @RequestParam boolean removeWholeProduct
-                        ){
-            return deleteProductApi.deleteProductApi(productDeleteReq,removeWholeProduct);
+    public ApiOutput<?>deleteProduct(@RequestBody ProductDeleteReq productDeleteReq){
+            return deleteProductApi.deleteProductApi(productDeleteReq);
     }
 
     @PutMapping("/update")
