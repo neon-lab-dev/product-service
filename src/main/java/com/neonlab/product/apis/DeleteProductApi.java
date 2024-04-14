@@ -4,7 +4,7 @@ import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.utilities.StringUtil;
-import com.neonlab.product.pojo.ProductDeleteReq;
+import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

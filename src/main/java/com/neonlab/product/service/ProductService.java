@@ -1,17 +1,24 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.expectations.*;
+import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Product;
-import com.neonlab.product.pojo.ProductDeleteReq;
+import com.neonlab.product.models.ProductDeleteReq;
+import com.neonlab.product.models.responses.PageableResponse;
+import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
 import com.neonlab.common.utilities.ObjectMapperUtils;
+import com.neonlab.product.repository.specifications.ProductSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -31,46 +38,38 @@ public class ProductService {
     private ProductRepository productRepository;
 
     public ProductDto addProduct(ProductDto productReqDto) throws InvalidInputException, ServerException {
-
-        Optional<Product> existsProduct = productRepository.findByCode(productReqDto.getCode());
-
-        if (existsProduct.isPresent()) {
-            throw new ServerException(MESSAGE);
-        }
-
-        //productReqDto to Product
         Product product = ObjectMapperUtils.map(productReqDto,Product.class);
         if(productReqDto.getBrand() == null) {
             product.setBrand(BRAND);
         }
         product.setTags(TAG);
-        productRepository.save(product);
-
-        //product to productDto
+        product = productRepository.save(product);
         return ObjectMapperUtils.map(product,ProductDto.class);
+    }
 
+    public boolean existingProduct(String code) {
+        return productRepository.findByCode(code).isPresent();
     }
 
     public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
-
-        Product product = getProductByCode(productDeleteReq.getCode());
+        Product product = fetchProductByCode(productDeleteReq.getCode());
         Integer existsQuantity = product.getQuantity();
         Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
         product.setQuantity(currentQuantity);
         productRepository.save(product);
         log.warn("Now Your Product Quantity is {}", currentQuantity);
-        return  DELETE_MESSAGE;
+        return DELETE_MESSAGE;
     }
 
     public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
-        Product product = getProductByCode(code);
+        Product product = fetchProductByCode(code);
         return product.getQuantity()>=quantity;
     }
 
     @Transactional
     public ProductDto updateProduct(ProductDto product) throws ServerException, InvalidInputException {
         boolean flag = true;
-        Product existProducts = getProductByCode(product.getCode());
+        Product existProducts = fetchProductByCode(product.getCode());
         if(product.getName() != null){
             flag = false;
             existProducts.setName(product.getName());
@@ -118,8 +117,37 @@ public class ProductService {
         return ObjectMapperUtils.map(existProducts,ProductDto.class);
     }
 
-    private Product getProductByCode(String code) throws InvalidInputException {
+    public Product fetchProductByCode(String code) throws InvalidInputException {
         return productRepository.findByCode(code)
-                .orElseThrow(() -> new InvalidInputException("Product Not found with code "+code));
+                .orElseThrow(() -> new InvalidInputException("Product not found with code "+code));
     }
+
+    public PageableResponse<ProductDto> fetchProducts(final ProductSearchCriteria searchCriteria){
+        var pageable = PageableUtils.createPageable(searchCriteria);
+        Page<Product> products = productRepository.findAll(
+                ProductSpecifications.buildSearchCriteria(searchCriteria),
+                pageable
+        );
+        var reslutList = products.getContent().stream()
+                .map(ProductService::getProductDto)
+                .filter(Objects::nonNull)
+                .toList();
+        return new PageableResponse<>(reslutList, searchCriteria);
+    }
+
+    /**
+     * takes product entity as input and gives productDto. In case
+     * of error return null.
+     *
+     * @param product product entity
+     * @return null or productDto
+     */
+    private static ProductDto getProductDto(Product product) {
+        ProductDto retVal = null;
+        try{
+            retVal = ObjectMapperUtils.map(product, ProductDto.class);
+        } catch (ServerException ignored){}
+        return retVal;
+    }
+
 }

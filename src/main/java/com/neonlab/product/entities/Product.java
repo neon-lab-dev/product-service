@@ -1,14 +1,16 @@
 package com.neonlab.product.entities;
+import com.neonlab.common.entities.Generic;
 import com.neonlab.product.enums.Units;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 
 @Entity
 @Data
-@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "product", indexes = {
         @Index(name = "idx_name" ,columnList = "name"),
         @Index(name = "idx_category",columnList = "category"),
@@ -17,7 +19,7 @@ import java.math.BigDecimal;
         @Index(name = "idx_code",columnList = "code")
 })
 
-public class Product {
+public class Product extends Generic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,4 +48,10 @@ public class Product {
     private Integer quantity;//not null
     @Column(name = "tags",nullable = false)
     private String tags;//not null
+
+
+    public Product(){
+        super();
+    }
+
 }

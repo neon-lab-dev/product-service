@@ -22,11 +22,10 @@ public class AddProductApi {
     public ApiOutput<ProductDto> createProduct(ProductDto product) {
 
         try {
-            validate(product); // This can throw InvalidInputException
+            validate(product);
             ProductDto productDto = productService.addProduct(product);
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully", productDto);
         }catch (InvalidInputException | ServerException e) {
-
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
@@ -36,6 +35,12 @@ public class AddProductApi {
 
         if(Objects.isNull(product)){
             throw new NullPointerException("Product is Empty or Null Please Add something");
+        }
+        if(productService.existingProduct(product.getCode())){
+            throw new InvalidInputException(
+                    String.format("Product already exists with code %s. Please check for duplicate" +
+                            "product and if not change the product code and try.", product.getCode())
+            );
         }
         if(StringUtil.isNullOrEmpty(product.getName())){
             throw new InvalidInputException("Name of The Product is Mandatory");
