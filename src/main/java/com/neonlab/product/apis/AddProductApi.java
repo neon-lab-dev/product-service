@@ -32,7 +32,6 @@ public class AddProductApi {
             ProductDto productDto = productService.addProduct(product,images);
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully",productDto);
         }catch (Exception e) {
-
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
@@ -42,6 +41,11 @@ public class AddProductApi {
 
         if(Objects.isNull(product)){
             throw new NullPointerException("Product is Empty or Null Please Add something.");
+        }
+        if(productService.existingProduct(product.getCode())){
+            throw new InvalidInputException(
+                    String.format("Product already exists with code %s.", product.getCode())
+            );
         }
         if(StringUtil.isNullOrEmpty(product.getName())){
             throw new InvalidInputException("Name of The Product is Mandatory.");
@@ -69,9 +73,6 @@ public class AddProductApi {
         }
         if(files.size()>4){
             throw new InvalidInputException("Cannot upload more than 4 images.");
-        }
-        if(files.isEmpty()){
-            throw new InvalidInputException("Please Add at-least one file");
         }
     }
 }
