@@ -24,12 +24,13 @@ public class AddProductApi {
     @Autowired
     private DocumentService documentService;
 
-    public ApiOutput<?> createProduct(ProductDto product, List<MultipartFile> files) {
+    public ApiOutput<ProductDto> createProduct(ProductDto product) {
 
         try {
-            validate(product,files); // This can throw InvalidInputException
-            DocumentDto images = documentService.saveDocument(files);
-            ProductDto productDto = productService.addProduct(product,images);
+            /*validate(product,files); // This can throw InvalidInputException
+            DocumentDto images = documentService.saveDocument(files);*/
+            validate(product);
+            ProductDto productDto = productService.addProduct(product);
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully",productDto);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -37,7 +38,7 @@ public class AddProductApi {
     }
 
 
-    private void validate (ProductDto product, List<MultipartFile> files) throws InvalidInputException {
+    private void validate (ProductDto product) throws InvalidInputException {
 
         if(Objects.isNull(product)){
             throw new NullPointerException("Product is Empty or Null Please Add something.");
@@ -71,8 +72,8 @@ public class AddProductApi {
         if(Objects.isNull(product.getQuantity())){
             throw new InvalidInputException("Product Quantity is Mandatory.");
         }
-        if(files.size()>4){
+        /*if(files.size()>4){
             throw new InvalidInputException("Cannot upload more than 4 images.");
-        }
+        }*/
     }
 }

@@ -38,7 +38,7 @@ public class ProductController {
 
         try {
             ProductDto product = JsonUtils.readObjectFromJson(productJson,ProductDto.class);
-            return addProductApi.createProduct(product,files);
+            return addProductApi.createProduct(product);
         } catch (JsonParseException e) {
             return new ApiOutput<>(HttpStatus.FORBIDDEN.value(), e.getMessage());
         }
