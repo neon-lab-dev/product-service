@@ -4,7 +4,6 @@ import com.neonlab.product.enums.Units;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 

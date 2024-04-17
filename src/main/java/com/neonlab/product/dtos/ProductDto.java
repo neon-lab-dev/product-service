@@ -2,6 +2,7 @@ package com.neonlab.product.dtos;
 import com.neonlab.product.enums.Units;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Data
@@ -17,5 +18,5 @@ public class ProductDto {
     private String variety;
     private Integer quantity;
     private String description;
-    private Long documentId;
+    private List<String> documentId;
 }

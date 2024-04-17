@@ -1,7 +1,7 @@
 package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.dto.AddDocumentDto;
 import com.neonlab.common.dto.ApiOutput;
-import com.neonlab.common.dto.DocumentDto;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.utilities.StringUtil;
@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Objects;
 
+import static com.neonlab.product.constants.ProductEntityConstant.IMAGE_UPLOAD_LIMIT_EXCEEDED;
+
 
 @Loggable
 @Service
@@ -23,12 +25,13 @@ public class UpdateProductApi {
     private ProductService productService;
     @Autowired
     private DocumentService documentService;
-    public ApiOutput<ProductDto> updateProduct(ProductDto product, List<MultipartFile> files, Long documentId) {
+
+    public ApiOutput<ProductDto> updateProduct(ProductDto product, AddDocumentDto addDocumentDto) {
 
         try {
-            validate(product,files);
-            DocumentDto images = documentService.updateDocument(files,documentId);
-            ProductDto productDto = productService.updateProduct(product,images);
+            validate(product,addDocumentDto.getFiles());
+            List<String> documentId = documentService.updateDocument(addDocumentDto);
+            ProductDto productDto = productService.updateProduct(product,documentId);
             return new ApiOutput<>(HttpStatus.OK.value(),"Product Update Successfully",productDto);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -42,8 +45,10 @@ public class UpdateProductApi {
         if(StringUtil.isNullOrEmpty(productDto.getCode())){
             throw new InvalidInputException("Product Code is Mandatory");
         }
-        if(files.size()>4){
-            throw new InvalidInputException("Cannot upload more than 4 images.");
+
+        if(files != null && files.size()>4){
+            throw new InvalidInputException(IMAGE_UPLOAD_LIMIT_EXCEEDED);
         }
+
     }
 }

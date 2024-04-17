@@ -8,5 +8,8 @@ public class ProductEntityConstant {
     public static final String BRAND = "brand";
     public static final String CODE = "code";
     public static final String PRICE = "price";
+    public static final String IMAGE_UPLOAD_LIMIT_EXCEEDED = "Cannot upload more than 4 images.";
+
+
 
 }

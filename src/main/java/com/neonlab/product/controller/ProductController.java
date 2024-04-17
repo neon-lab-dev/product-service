@@ -1,7 +1,9 @@
 package com.neonlab.product.controller;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.dto.AddDocumentDto;
 import com.neonlab.common.dto.ApiOutput;
+import com.neonlab.common.dto.DocumentDto;
 import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.product.apis.DeleteProductApi;
 import com.neonlab.product.apis.FetchProductApi;
@@ -34,18 +36,18 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<ProductDto> addProduct(
                @RequestParam("productDetails") String productJson,
-               @RequestParam(value = "files", required = false) List<MultipartFile> files) {
+               @ModelAttribute AddDocumentDto addDocumentDto) {
 
         try {
             ProductDto product = JsonUtils.readObjectFromJson(productJson,ProductDto.class);
-            return addProductApi.createProduct(product);
-        } catch (JsonParseException e) {
+            return addProductApi.createProduct(product,addDocumentDto);
+        } catch (Exception e) {
             return new ApiOutput<>(HttpStatus.FORBIDDEN.value(), e.getMessage());
         }
     }
 
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+   @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<?>deleteProduct(@RequestBody ProductDeleteReq productDeleteReq){
             return deleteProductApi.deleteProductApi(productDeleteReq);
     }
@@ -53,12 +55,11 @@ public class ProductController {
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<ProductDto> updateProduct(
-                  @RequestParam("ProductDetails") String productJson,
-                  @RequestParam("files") List<MultipartFile> files,
-                  @RequestParam("id") Long documentId){
+            @RequestParam("ProductDetails") String productJson,
+            @ModelAttribute AddDocumentDto addDocumentDto){
         try {
             ProductDto productDto = JsonUtils.readObjectFromJson(productJson, ProductDto.class);
-            return updateProductApi.updateProduct(productDto,files,documentId);
+            return updateProductApi.updateProduct(productDto,addDocumentDto);
         }catch (JsonParseException e){
             return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
         }

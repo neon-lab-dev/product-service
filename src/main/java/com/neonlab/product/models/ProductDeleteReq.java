@@ -1,4 +1,5 @@
 package com.neonlab.product.models;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 

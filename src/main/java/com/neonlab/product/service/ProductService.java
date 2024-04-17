@@ -17,9 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -40,14 +40,17 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public ProductDto addProduct(ProductDto productReqDto) throws InvalidInputException, ServerException {
+    public ProductDto addProduct(ProductDto productReqDto, List<String>documentId) throws InvalidInputException, ServerException {
         Product product = ObjectMapperUtils.map(productReqDto,Product.class);
         if(productReqDto.getBrand() == null) {
             product.setBrand(BRAND);
         }
         product.setTags(TAG);
+
         product = productRepository.save(product);
-        return ObjectMapperUtils.map(product,ProductDto.class);
+        ProductDto productDto = ObjectMapperUtils.map(product,ProductDto.class);
+        productDto.setDocumentId(documentId);
+        return productDto;
     }
 
     public boolean existingProduct(String code) {
@@ -56,7 +59,11 @@ public class ProductService {
 
     public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
         Product product = fetchProductByCode(productDeleteReq.getCode());
+        if(productDeleteReq.getDeleteProduct()){
+            return deleteWholeProduct(product);
+        }
         Integer existsQuantity = product.getQuantity();
+        assert productDeleteReq.getQuantity() != null;
         Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
         product.setQuantity(currentQuantity);
         productRepository.save(product);
@@ -66,6 +73,7 @@ public class ProductService {
 
     public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
         Product product = fetchProductByCode(code);
+        assert quantity != null;
         return product.getQuantity()>=quantity;
     }
 
@@ -75,7 +83,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto updateProduct(ProductDto product, DocumentDto images) throws ServerException, InvalidInputException {
+    public ProductDto updateProduct(ProductDto product, List<String> documentId) throws ServerException, InvalidInputException {
         boolean flag = true;
         Product existProducts = fetchProductByCode(product.getCode());
         if(product.getName() != null){
@@ -123,7 +131,9 @@ public class ProductService {
         }
         productRepository.save(existProducts);
         ProductDto productDto = ObjectMapperUtils.map(existProducts,ProductDto.class);
-        productDto.setDocumentId(images.getId());
+        if(documentId != null) {
+            productDto.setDocumentId(documentId);
+        }
         return productDto;
     }
 

@@ -1,5 +1,6 @@
 package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.dto.AddDocumentDto;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.dto.DocumentDto;
 import com.neonlab.common.expectations.InvalidInputException;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Objects;
 
+import static com.neonlab.product.constants.ProductEntityConstant.IMAGE_UPLOAD_LIMIT_EXCEEDED;
 
 
 @Loggable
@@ -24,13 +26,14 @@ public class AddProductApi {
     @Autowired
     private DocumentService documentService;
 
-    public ApiOutput<ProductDto> createProduct(ProductDto product) {
+
+
+    public ApiOutput<ProductDto> createProduct(ProductDto product, AddDocumentDto addDocumentDto) {
 
         try {
-            /*validate(product,files); // This can throw InvalidInputException
-            DocumentDto images = documentService.saveDocument(files);*/
-            validate(product);
-            ProductDto productDto = productService.addProduct(product);
+            validate(product,addDocumentDto); // This can throw InvalidInputException
+            List<String> documentId = documentService.saveDocument(addDocumentDto);
+            ProductDto productDto = productService.addProduct(product,documentId);
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully",productDto);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -38,7 +41,7 @@ public class AddProductApi {
     }
 
 
-    private void validate (ProductDto product) throws InvalidInputException {
+    private void validate (ProductDto product, AddDocumentDto addDocumentDto) throws InvalidInputException {
 
         if(Objects.isNull(product)){
             throw new NullPointerException("Product is Empty or Null Please Add something.");
@@ -72,8 +75,11 @@ public class AddProductApi {
         if(Objects.isNull(product.getQuantity())){
             throw new InvalidInputException("Product Quantity is Mandatory.");
         }
-        /*if(files.size()>4){
-            throw new InvalidInputException("Cannot upload more than 4 images.");
-        }*/
+        if(addDocumentDto.getFiles().size()>4){
+            throw new InvalidInputException(IMAGE_UPLOAD_LIMIT_EXCEEDED);
+        }
+        if(StringUtil.isNullOrEmpty(addDocumentDto.getName())){
+            throw new InvalidInputException("Document name is mandatory");
+        }
     }
 }
