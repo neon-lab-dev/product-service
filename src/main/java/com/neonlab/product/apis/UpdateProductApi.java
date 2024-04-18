@@ -1,9 +1,8 @@
 package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
-import com.neonlab.common.dto.AddDocumentDto;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
-import com.neonlab.common.services.DocumentService;
+import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.service.ProductService;
@@ -13,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Objects;
+import static com.neonlab.product.constants.ProductConstant.IMAGE_UPLOAD_LIMIT_EXCEEDED;
 
-import static com.neonlab.product.constants.ProductEntityConstant.IMAGE_UPLOAD_LIMIT_EXCEEDED;
 
 
 @Loggable
@@ -23,22 +22,20 @@ public class UpdateProductApi {
 
     @Autowired
     private ProductService productService;
-    @Autowired
-    private DocumentService documentService;
 
-    public ApiOutput<ProductDto> updateProduct(ProductDto product, AddDocumentDto addDocumentDto) {
+    public ApiOutput<ProductDto> updateProduct(String productJson, List<MultipartFile> files) {
 
         try {
-            validate(product,addDocumentDto.getFiles());
-            List<String> documentId = documentService.updateDocument(addDocumentDto);
-            ProductDto productDto = productService.updateProduct(product,documentId);
+            ProductDto product = JsonUtils.readObjectFromJson(productJson , ProductDto.class);
+            validate(product , files);
+            ProductDto productDto = productService.updateProduct(product , files);
             return new ApiOutput<>(HttpStatus.OK.value(),"Product Update Successfully",productDto);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
 
-    private void validate(ProductDto productDto, List<MultipartFile> files) throws InvalidInputException {
+    private void validate(ProductDto productDto , List<MultipartFile> files) throws InvalidInputException {
         if(Objects.isNull(productDto)){
             throw new NullPointerException("Please Add Something To update Product");
         }

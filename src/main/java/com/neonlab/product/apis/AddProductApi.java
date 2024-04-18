@@ -1,21 +1,21 @@
 package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
-import com.neonlab.common.dto.AddDocumentDto;
 import com.neonlab.common.dto.ApiOutput;
-import com.neonlab.common.dto.DocumentDto;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.services.DocumentService;
+import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
+import com.neonlab.product.entities.Product;
 import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import static com.neonlab.product.constants.ProductConstant.IMAGE_UPLOAD_LIMIT_EXCEEDED;
 import java.util.List;
 import java.util.Objects;
 
-import static com.neonlab.product.constants.ProductEntityConstant.IMAGE_UPLOAD_LIMIT_EXCEEDED;
 
 
 @Loggable
@@ -23,17 +23,15 @@ import static com.neonlab.product.constants.ProductEntityConstant.IMAGE_UPLOAD_L
 public class AddProductApi {
     @Autowired
     private ProductService productService;
-    @Autowired
-    private DocumentService documentService;
 
 
-
-    public ApiOutput<ProductDto> createProduct(ProductDto product, AddDocumentDto addDocumentDto) {
+    public ApiOutput<ProductDto> createProduct(String productJson, List<MultipartFile> files) {
 
         try {
-            validate(product,addDocumentDto); // This can throw InvalidInputException
-            List<String> documentId = documentService.saveDocument(addDocumentDto);
-            ProductDto productDto = productService.addProduct(product,documentId);
+            ProductDto product = JsonUtils.readObjectFromJson(productJson , ProductDto.class);
+            validate(product,files); // This can throw InvalidInputException
+            ProductDto productDto = productService.addProduct(product,files);
+
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully",productDto);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -41,7 +39,7 @@ public class AddProductApi {
     }
 
 
-    private void validate (ProductDto product, AddDocumentDto addDocumentDto) throws InvalidInputException {
+    private void validate (ProductDto product, List<MultipartFile> files) throws InvalidInputException {
 
         if(Objects.isNull(product)){
             throw new NullPointerException("Product is Empty or Null Please Add something.");
@@ -75,11 +73,8 @@ public class AddProductApi {
         if(Objects.isNull(product.getQuantity())){
             throw new InvalidInputException("Product Quantity is Mandatory.");
         }
-        if(addDocumentDto.getFiles().size()>4){
+        if(files.size()>4){
             throw new InvalidInputException(IMAGE_UPLOAD_LIMIT_EXCEEDED);
-        }
-        if(StringUtil.isNullOrEmpty(addDocumentDto.getName())){
-            throw new InvalidInputException("Document name is mandatory");
         }
     }
 }
