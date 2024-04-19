@@ -22,8 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
 
 
 @Service
@@ -56,7 +59,7 @@ public class ProductService {
         setDefaults(product);
         product = productRepository.save(product);
         ProductDto productDto = ObjectMapperUtils.map(product , ProductDto.class);
-        List<String> documentId =  documentService.saveDocumentForProduct(files);
+        List<String> documentId =  documentService.save(files);
         mapDocument(product , documentId);
         productDto.setDocumentId(documentId);
         return productDto;
@@ -122,8 +125,8 @@ public class ProductService {
         List<String> boundedDocumentId = new ArrayList<>();
         List<String> documentId = new ArrayList<>();
         if(files != null && !files.isEmpty()) {
-            documentId.addAll(documentService.saveDocumentForProduct(files));
-            List<Document> documents = boundDocument(documentId,existProducts);
+            documentId.addAll(documentService.save(files));
+            List<Document> documents = enforceDocumentLimitForProduct(documentId,existProducts);
             for(Document document : documents){
                 boundedDocumentId.add(document.getId());
             }
@@ -134,19 +137,19 @@ public class ProductService {
     }
 
     @Transactional
-    private List<Document> boundDocument(List<String> documentId , Product existProduct) {
+    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , Product existProduct) {
         var boundedQueue = new BoundedQueue<String>(4);
         List<Document> documentList = getDocumentByDocIdentifier(existProduct.getId());
         for(Document document : documentList){
-            boundedQueue.add(document.getBase64());
+            boundedQueue.add(document.getId());
         }
 
         for(String id : documentId){
             var document = documentRepository.findById(id).orElse(null);
             assert document != null;
-            String oldest = boundedQueue.add(document.getBase64());
-            if (oldest != null && !oldest.isEmpty()) {
-                Document oldDocument = documentRepository.findByBase64(oldest);
+            String oldestDocId = boundedQueue.add(document.getId());
+            if (oldestDocId != null && !oldestDocId.isEmpty()) {
+                Document oldDocument = getDocumentById(oldestDocId);
                 documentRepository.delete(oldDocument);
             }
         }
@@ -155,7 +158,10 @@ public class ProductService {
     }
 
     private List<Document> getDocumentByDocIdentifier(String id) {
-       return  documentRepository.findByDocIdentifier(id);
+       List<Document> documentList =  documentRepository.findByDocIdentifier(id);
+       return documentList.stream()
+               .sorted(Comparator.comparing(Document::getCreatedAt))
+               .collect(Collectors.toList());
     }
 
     private void mapDocument(Product product, List<String> documentId) {
@@ -197,8 +203,6 @@ public class ProductService {
         productRepository.delete(product);
         return WHOLE_PRODUCT_DELETE_MESSAGE;
     }
-
-
 
     public Product fetchProductByCode(String code) throws InvalidInputException {
         return productRepository.findByCode(code)
