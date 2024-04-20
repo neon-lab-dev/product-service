@@ -25,7 +25,7 @@ public class DeleteProductApi {
         try {
             validate(productDeleteReq);
             String status = productService.deleteProductApi(productDeleteReq);
-            return new ApiOutput<>(HttpStatus.OK.value(), status,null);
+                return new ApiOutput<>(HttpStatus.OK.value(), status, null);
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
@@ -36,10 +36,10 @@ public class DeleteProductApi {
         if(StringUtil.isNullOrEmpty(productDeleteReq.getCode())){
             throw new InvalidInputException("Product code is Mandatory");
         }
-        if(Objects.isNull(productDeleteReq.getQuantity())) {
+        if(!productDeleteReq.getDeleteProduct() &&  Objects.isNull(productDeleteReq.getQuantity())) {
             throw new InvalidInputException("Product Quantity is Mandatory");
         }
-        if(!productService.isReduceQuantityValid(productDeleteReq.getCode(),productDeleteReq.getQuantity())){
+        if(productDeleteReq.getQuantity() != null && !productService.isReduceQuantityValid(productDeleteReq.getCode(),productDeleteReq.getQuantity())){
             throw new InvalidInputException("Product Quantity is not sufficient to reduce");
         }
     }
