@@ -30,7 +30,7 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<ProductDto> addProduct(
             @RequestParam("productDetails") String productJson,
-            @RequestParam("files") List<MultipartFile> files) {
+            @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 
         return addProductApi.createProduct(productJson , files);
     }
