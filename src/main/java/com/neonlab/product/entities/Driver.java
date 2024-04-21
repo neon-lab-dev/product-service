@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "driver")
+@Table(name = "driver", indexes = {@Index(name = "idx_contact_no",columnList = "contact_no")})
 public class Driver extends Generic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String driverId;
+    private String id;
     @Column(name = "name",nullable = false)
     private String name;
     @Column(name = "contact_no",nullable = false)
@@ -23,6 +23,14 @@ public class Driver extends Generic {
 
     public Driver(){
         super();
+    }
+
+    public Driver(String name,String contactNo,String vehicleNo){
+        super();
+        this.name=name;
+        this.contactNo=contactNo;
+        this.vehicleNo=vehicleNo;
+        this.isAvailable=true;
     }
 
 }
