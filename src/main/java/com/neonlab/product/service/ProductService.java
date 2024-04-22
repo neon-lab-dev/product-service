@@ -1,6 +1,10 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
+import com.neonlab.common.repositories.DocumentRepository;
+import com.neonlab.common.services.BoundedQueue;
+import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Product;
@@ -15,10 +19,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 
 @Service
@@ -34,40 +42,40 @@ public class ProductService {
 
     public final static String DELETE_MESSAGE = "Product Quantity Reduce Successfully";
 
+    public final static String WHOLE_PRODUCT_DELETE_MESSAGE = "Product Deleted Successfully";
+
     @Autowired
     private ProductRepository productRepository;
 
-    public ProductDto addProduct(ProductDto productReqDto) throws InvalidInputException, ServerException {
-        Product product = ObjectMapperUtils.map(productReqDto,Product.class);
-        if(productReqDto.getBrand() == null) {
-            product.setBrand(BRAND);
-        }
-        product.setTags(TAG);
+    @Autowired
+    private DocumentService documentService;
+
+    @Autowired
+    private DocumentRepository documentRepository;
+
+
+    public ProductDto addProduct(ProductDto productReqDto , List<MultipartFile> files) throws ServerException, IOException {
+        Product product = ObjectMapperUtils.map(productReqDto , Product.class);
+        setDefaults(product);
         product = productRepository.save(product);
-        return ObjectMapperUtils.map(product,ProductDto.class);
+        ProductDto productDto = ObjectMapperUtils.map(product , ProductDto.class);
+        List<String> documentId =  documentService.save(files);
+        mapDocument(product , documentId);
+        productDto.setDocumentId(documentId);
+        return productDto;
+    }
+
+    private void setDefaults(Product product) {
+        product.setBrand(BRAND);
+        product.setTags(TAG);
     }
 
     public boolean existingProduct(String code) {
         return productRepository.findByCode(code).isPresent();
     }
 
-    public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
-        Product product = fetchProductByCode(productDeleteReq.getCode());
-        Integer existsQuantity = product.getQuantity();
-        Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
-        product.setQuantity(currentQuantity);
-        productRepository.save(product);
-        log.warn("Now Your Product Quantity is {}", currentQuantity);
-        return DELETE_MESSAGE;
-    }
-
-    public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
-        Product product = fetchProductByCode(code);
-        return product.getQuantity()>=quantity;
-    }
-
     @Transactional
-    public ProductDto updateProduct(ProductDto product) throws ServerException, InvalidInputException {
+    public ProductDto updateProduct(ProductDto product , List<MultipartFile> files) throws ServerException, InvalidInputException, IOException {
         boolean flag = true;
         Product existProducts = fetchProductByCode(product.getCode());
         if(product.getName() != null){
@@ -98,9 +106,9 @@ public class ProductService {
             flag = false;
             existProducts.setPrice(product.getPrice());
         }
-        if(product.getDiscountPrice() != null){
+        if(product.getDiscountPercent() != null){
             flag = false;
-            existProducts.setDiscountPrice(product.getDiscountPrice());
+            existProducts.setDiscountPercent(product.getDiscountPercent());
         }
         if(product.getUnits() != null && product.getUnits().getUnit() != null){
             flag = false;
@@ -114,7 +122,86 @@ public class ProductService {
             throw new InvalidInputException("Please add at-least one value to update");
         }
         productRepository.save(existProducts);
-        return ObjectMapperUtils.map(existProducts,ProductDto.class);
+        List<String> boundedDocumentId = new ArrayList<>();
+        List<String> documentId = new ArrayList<>();
+        if(files != null && !files.isEmpty()) {
+            documentId.addAll(documentService.save(files));
+            List<Document> documents = enforceDocumentLimitForProduct(documentId,existProducts);
+            for(Document document : documents){
+                boundedDocumentId.add(document.getId());
+            }
+        }
+        ProductDto productDto = ObjectMapperUtils.map(existProducts , ProductDto.class);
+        productDto.setDocumentId(boundedDocumentId);
+        return productDto;
+    }
+
+    @Transactional
+    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , Product existProduct) {
+        var boundedQueue = new BoundedQueue<String>(4);
+        List<Document> documentList = getDocumentByDocIdentifier(existProduct.getId());
+        for(Document document : documentList){
+            boundedQueue.add(document.getId());
+        }
+
+        for(String id : documentId){
+            var document = documentRepository.findById(id).orElse(null);
+            assert document != null;
+            String oldestDocId = boundedQueue.add(document.getId());
+            if (oldestDocId != null && !oldestDocId.isEmpty()) {
+                Document oldDocument = getDocumentById(oldestDocId);
+                documentRepository.delete(oldDocument);
+            }
+        }
+        mapDocument(existProduct , documentId);
+        return getDocumentByDocIdentifier(existProduct.getId());
+    }
+
+    private List<Document> getDocumentByDocIdentifier(String id) {
+        List<Document> documentList =  documentRepository.findByDocIdentifier(id);
+        return documentList.stream()
+                .sorted(Comparator.comparing(Document::getCreatedAt))
+                .collect(Collectors.toList());
+    }
+
+    private void mapDocument(Product product, List<String> documentId) {
+        for(String id : documentId) {
+            Document document = getDocumentById(id);
+            assert document != null;
+            document.setEntityName(Product.class.getSimpleName());
+            document.setDocIdentifier(product.getId());
+            documentRepository.save(document);
+        }
+    }
+
+    private Document getDocumentById(String id){
+        return documentRepository.findById(id).orElse(null);
+    }
+
+
+    public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
+        Product product = fetchProductByCode(productDeleteReq.getCode());
+        if(productDeleteReq.getDeleteProduct()){
+            return deleteWholeProduct(product);
+        }
+        Integer existsQuantity = product.getQuantity();
+        assert productDeleteReq.getQuantity() != null;
+        Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
+        product.setQuantity(currentQuantity);
+        productRepository.save(product);
+        log.warn("Now Your Product Quantity is {}", currentQuantity);
+        return DELETE_MESSAGE;
+    }
+
+    public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
+        Product product = fetchProductByCode(code);
+        assert quantity != null;
+        return product.getQuantity()>=quantity;
+    }
+
+    public String deleteWholeProduct(Product product) {
+        productRepository.delete(product);
+        return WHOLE_PRODUCT_DELETE_MESSAGE;
     }
 
     public Product fetchProductByCode(String code) throws InvalidInputException {

@@ -11,3 +11,7 @@ spring:
     hibernate:
       ddl-auto: update
     database: MYSQL
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB

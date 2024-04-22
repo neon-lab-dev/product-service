@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 })
 
 public class Product extends Generic {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
@@ -39,7 +38,7 @@ public class Product extends Generic {
     @Column(name = "price",nullable = false)
     private BigDecimal price =  BigDecimal.valueOf(0.0);//not null
     @Column(name = "discount_price",nullable = false)
-    private BigDecimal discountPrice = BigDecimal.valueOf(0.0);//not null
+    private BigDecimal discountPercent;
     @Enumerated(EnumType.STRING)
     private Units units;//not null
     @Column(name = "variety",nullable = false)

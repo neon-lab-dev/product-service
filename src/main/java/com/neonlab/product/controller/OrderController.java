@@ -1,10 +1,8 @@
-/*
 package com.neonlab.product.controller;
-
-
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.product.apis.CreateOrderApi;
 import com.neonlab.product.dtos.OrderDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,12 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderController {
 
-    CreateOrderApi createOrderApi;
+    private final CreateOrderApi createOrderApi;
 
     @PostMapping("/create")
     public ApiOutput<?> createOrder(@RequestBody OrderDto orderDto) {
         return createOrderApi.createOrder(orderDto);
     }
 }
-
- */
