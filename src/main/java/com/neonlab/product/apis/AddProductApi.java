@@ -24,6 +24,7 @@ public class AddProductApi {
     @Autowired
     private ProductService productService;
 
+
     public ApiOutput<ProductDto> createProduct(String productJson, List<MultipartFile> files) {
 
         try {
