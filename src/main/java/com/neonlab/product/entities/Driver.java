@@ -1,13 +1,15 @@
 package com.neonlab.product.entities;
 
 import com.neonlab.common.entities.Generic;
+import com.neonlab.product.dtos.DriverDto;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "driver", indexes = {@Index(name = "idx_contact_no",columnList = "contact_no")})
+@Table(name = "driver", indexes = {
+        @Index(name = "idx_contact_no",columnList = "contact_no")
+})
 public class Driver extends Generic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -19,18 +21,18 @@ public class Driver extends Generic {
     @Column(name = "vehicle_no",nullable = false)
     private String vehicleNo;
     @Column(name = "is_available")
-    private boolean isAvailable;
+    private boolean available;
 
     public Driver(){
         super();
     }
 
-    public Driver(String name,String contactNo,String vehicleNo){
+    public Driver(DriverDto driverDto){
         super();
-        this.name=name;
-        this.contactNo=contactNo;
-        this.vehicleNo=vehicleNo;
-        this.isAvailable=true;
+        this.name= driverDto.getName();
+        this.contactNo= driverDto.getContactNo();
+        this.vehicleNo= driverDto.getVehicleNo();
+        this.available=true;
     }
 
 }

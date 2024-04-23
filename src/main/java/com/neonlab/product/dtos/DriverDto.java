@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AddDriverResponse {
+public class DriverDto {
     private String id;
     private String name;
     private String contactNo;
