@@ -9,10 +9,14 @@ import com.neonlab.product.dtos.DriverDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Loggable
 @RequestMapping("/v1/driver")
 public class DriverController {
+
+
 
     @Autowired
     private AddDriverApi addDriverApi;
@@ -26,8 +30,8 @@ public class DriverController {
     }
 
     @DeleteMapping("/delete")
-    public ApiOutput<Void> deleteDriver(@RequestParam String id){
-        return deleteDriverApi.deleteDriver(id);
+    public ApiOutput<Void> deleteDriver(@RequestParam List<String> ids){
+        return deleteDriverApi.deleteDriver(ids);
     }
 
     @PostMapping("/update")

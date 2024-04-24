@@ -15,6 +15,9 @@ import java.util.Objects;
 @Service
 @Loggable
 public class UpdateDriverApi {
+
+    public static final String UPDATE_MESSAGE="Driver information is updated successfully";
+
     @Autowired
     private DriverService driverService;
 
@@ -22,7 +25,7 @@ public class UpdateDriverApi {
         try{
             validate(driverDto);
             DriverDto response=driverService.updateDriver(driverDto);
-            return new ApiOutput<>(HttpStatus.OK.value(), "Driver information is updated successfully",response);
+            return new ApiOutput<>(HttpStatus.OK.value(), UPDATE_MESSAGE,response);
         } catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }

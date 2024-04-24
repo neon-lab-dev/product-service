@@ -9,22 +9,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Loggable
 public class DeleteDriverApi {
     @Autowired
     private DriverService driverService;
-    public ApiOutput<Void> deleteDriver(String id){
+
+    public ApiOutput<Void> deleteDriver(List<String> ids){
+
         try {
-            validate(id);
-            String msg= driverService.deleteDriver(id);
-            return new ApiOutput<>(HttpStatus.OK.value(), msg);
-        } catch (Exception e) {
+            validate(ids);
+            String msg= driverService.deleteDriver(ids);
+                return new ApiOutput<>(HttpStatus.OK.value(), msg);
+        }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
-    private void validate(String id) throws InvalidInputException{
-        if(StringUtil.isNullOrEmpty(id)){
+    private void validate(List<String> ids) throws InvalidInputException{
+
+        if(ids.isEmpty()){
             throw new InvalidInputException("Driver id is not provided.");
         }
     }

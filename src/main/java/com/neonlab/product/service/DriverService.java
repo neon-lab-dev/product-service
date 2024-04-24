@@ -10,46 +10,44 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @Loggable
 @Slf4j
 public class DriverService {
+
+    public final static String DELETE_MESSAGE = "Drivers Has been deleted.";
+
     @Autowired
     private DriverRepository driverRepository;
+
     public DriverDto addDriver(DriverDto driverDto) throws ServerException {
         Driver newDriver=new Driver(driverDto);
         Driver driver=driverRepository.save(newDriver);
         DriverDto response=new DriverDto(driver.getId(), driver.getName(), driver.getContactNo(), driver.getVehicleNo(), driver.isAvailable());
         return response;
     }
-    public String deleteDriver(String id) throws ServerException{
-        driverRepository.deleteById(id);
-        return "Driver Has been deleted.";
+    public String deleteDriver(List<String> ids) throws ServerException{
+        driverRepository.deleteAllById(ids);
+        return DELETE_MESSAGE;
     }
 
     public DriverDto updateDriver(DriverDto driverDto) throws ServerException, InvalidInputException {
         Optional<Driver> optionalDriver=driverRepository.findById(driverDto.getId());
-        int flag=0;
         if(optionalDriver.isEmpty()){
             throw new InvalidInputException("invalid driver id");
         }
         Driver driver=optionalDriver.get();
         if(driverDto.getName()!=null){
-            flag=1;
             driver.setName(driver.getName());
         }
         if(driverDto.getContactNo()!=null){
-            flag=1;
             driver.setContactNo(driverDto.getContactNo());
         }
         if(driverDto.getVehicleNo()!=null){
-            flag=1;
             driver.setVehicleNo(driverDto.getVehicleNo());
-        }
-        if(flag==0){
-            throw new InvalidInputException("please provide something to update");
         }
         Driver updatedDriver=driverRepository.save(driver);
         DriverDto response=new DriverDto(driver.getId(),driver.getName(),driver.getContactNo(),driver.getVehicleNo(), driverDto.isAvailable());

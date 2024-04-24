@@ -48,7 +48,7 @@ public class ProductService {
     private ProductRepository productRepository;
 
     @Autowired
-    private DocumentService documentService;
+    //private DocumentService documentService;
 
     @Autowired
     private DocumentRepository documentRepository;
