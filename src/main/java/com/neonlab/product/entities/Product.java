@@ -4,7 +4,6 @@ import com.neonlab.product.enums.Units;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 
@@ -20,34 +19,34 @@ import java.math.BigDecimal;
 })
 
 public class Product extends Generic {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     @Column(name = "name",nullable = false)
-    private String name;//not null index
+    private String name;
     @Column(name = "category",nullable = false)
-    private String category;//not null index
+    private String category;
     @Column(name = "sub_category",nullable = false)
-    private String subCategory;//not null index
+    private String subCategory;
     @Column(name = "description",nullable = false)
-    private String description;//not null
+    private String description;
     @Column(name = "brand")
     private String brand;
     @Column(name = "code",nullable = false,unique = true)
-    private String code;//not null index unique
+    private String code;
     @Column(name = "price",nullable = false)
-    private BigDecimal price =  BigDecimal.valueOf(0.0);//not null
-    @Column(name = "discount_price",nullable = false)
-    private BigDecimal discountPercent;
+    private BigDecimal price =  BigDecimal.valueOf(0.0);
+    @Column(name = "discount_percent")
+    private BigDecimal discountPercent = BigDecimal.valueOf(0.0);//not null
     @Enumerated(EnumType.STRING)
-    private Units units;//not null
+    private Units units;
     @Column(name = "variety",nullable = false)
-    private String variety;//not null
+    private String variety;
     @Column(name = "quantity",nullable = false)
-    private Integer quantity;//not null
+    private Integer quantity;
     @Column(name = "tags",nullable = false)
     private String tags;//not null
-
 
     public Product(){
         super();

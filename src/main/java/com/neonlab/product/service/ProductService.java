@@ -158,10 +158,10 @@ public class ProductService {
     }
 
     private List<Document> getDocumentByDocIdentifier(String id) {
-        List<Document> documentList =  documentRepository.findByDocIdentifier(id);
-        return documentList.stream()
-                .sorted(Comparator.comparing(Document::getCreatedAt))
-                .collect(Collectors.toList());
+       List<Document> documentList =  documentRepository.findByDocIdentifier(id);
+       return documentList.stream()
+               .sorted(Comparator.comparing(Document::getCreatedAt))
+               .collect(Collectors.toList());
     }
 
     private void mapDocument(Product product, List<String> documentId) {

@@ -25,7 +25,7 @@ public class DeleteProductApi {
         try {
             validate(productDeleteReq);
             String status = productService.deleteProductApi(productDeleteReq);
-            return new ApiOutput<>(HttpStatus.OK.value(), status, null);
+                return new ApiOutput<>(HttpStatus.OK.value(), status, null);
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
