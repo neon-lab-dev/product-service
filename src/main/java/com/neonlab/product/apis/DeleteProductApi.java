@@ -20,7 +20,7 @@ public class DeleteProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq){
+    public ApiOutput<?> deleteProductApi(ProductDeleteReq productDeleteReq){
 
         try {
             validate(productDeleteReq);
