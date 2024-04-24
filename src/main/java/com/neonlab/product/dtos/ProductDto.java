@@ -1,4 +1,5 @@
 package com.neonlab.product.dtos;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.neonlab.product.enums.Units;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -6,6 +7,7 @@ import java.util.List;
 
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductDto {
     private String name;
     private String category;
@@ -18,5 +20,5 @@ public class ProductDto {
     private String variety;
     private Integer quantity;
     private String description;
-    private List<String> documentId;
+    private List<String> documentIds;
 }

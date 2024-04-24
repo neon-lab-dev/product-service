@@ -5,6 +5,7 @@ import com.neonlab.common.expectations.*;
 import com.neonlab.common.repositories.DocumentRepository;
 import com.neonlab.common.services.BoundedQueue;
 import com.neonlab.common.services.DocumentService;
+import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Product;
@@ -51,18 +52,22 @@ public class ProductService {
     private DocumentService documentService;
 
     @Autowired
-    private DocumentRepository documentRepository;
+    private UserService userService;
 
 
-    public ProductDto addProduct(ProductDto productReqDto , List<MultipartFile> files) throws ServerException, IOException {
-        Product product = ObjectMapperUtils.map(productReqDto , Product.class);
+    public ProductDto addProduct(ProductDto productReqDto , List<MultipartFile> files) throws ServerException, InvalidInputException {
+        var documents =  documentService.saveAll(files);
+        var product = ObjectMapperUtils.map(productReqDto, Product.class);
+        productReqDto.setDocumentIds(
+                documents.stream()
+                        .map(Document::getId)
+                        .toList()
+                );
+        mapDocument(product , documents);
         setDefaults(product);
+        product.setCreatedBy(userService.getLoggedInUser().getId());
         product = productRepository.save(product);
-        ProductDto productDto = ObjectMapperUtils.map(product , ProductDto.class);
-        List<String> documentId =  documentService.save(files);
-        mapDocument(product , documentId);
-        productDto.setDocumentId(documentId);
-        return productDto;
+        return ObjectMapperUtils.map(product, ProductDto.class);
     }
 
     private void setDefaults(Product product) {
@@ -123,59 +128,51 @@ public class ProductService {
         }
         productRepository.save(existProducts);
         List<String> boundedDocumentId = new ArrayList<>();
-        List<String> documentId = new ArrayList<>();
         if(files != null && !files.isEmpty()) {
-            documentId.addAll(documentService.save(files));
-            List<Document> documents = enforceDocumentLimitForProduct(documentId,existProducts);
+
+            var documentIds = new ArrayList<>(documentService.saveAll(files).stream()
+                    .map(Document::getId)
+                    .toList());
+            List<Document> documents = enforceDocumentLimitForProduct(documentIds,existProducts);
             for(Document document : documents){
                 boundedDocumentId.add(document.getId());
             }
         }
         ProductDto productDto = ObjectMapperUtils.map(existProducts , ProductDto.class);
-        productDto.setDocumentId(boundedDocumentId);
+        productDto.setDocumentIds(boundedDocumentId);
         return productDto;
     }
 
     @Transactional
-    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , Product existProduct) {
+    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , Product existProduct) throws InvalidInputException {
         var boundedQueue = new BoundedQueue<String>(4);
-        List<Document> documentList = getDocumentByDocIdentifier(existProduct.getId());
+        List<Document> documentList =
+                documentService.fetchByDocIdentifierAndEntityName(
+                        existProduct.getId(), existProduct.getClass().getSimpleName());
         for(Document document : documentList){
             boundedQueue.add(document.getId());
         }
-
+        var documents = new ArrayList<Document>();
         for(String id : documentId){
-            var document = documentRepository.findById(id).orElse(null);
-            assert document != null;
+            var document = documentService.fetchById(id);
+            documents.add(document);
             String oldestDocId = boundedQueue.add(document.getId());
             if (oldestDocId != null && !oldestDocId.isEmpty()) {
-                Document oldDocument = getDocumentById(oldestDocId);
-                documentRepository.delete(oldDocument);
+                Document oldDocument = documentService.fetchById(oldestDocId);
+                documentService.delete(oldDocument);
             }
         }
-        mapDocument(existProduct , documentId);
-        return getDocumentByDocIdentifier(existProduct.getId());
+        mapDocument(existProduct , documents);
+        return documentService.fetchByDocIdentifierAndEntityName(existProduct.getId(),
+                existProduct.getClass().getSimpleName());
     }
 
-    private List<Document> getDocumentByDocIdentifier(String id) {
-       List<Document> documentList =  documentRepository.findByDocIdentifier(id);
-       return documentList.stream()
-               .sorted(Comparator.comparing(Document::getCreatedAt))
-               .collect(Collectors.toList());
-    }
-
-    private void mapDocument(Product product, List<String> documentId) {
-        for(String id : documentId) {
-            Document document = getDocumentById(id);
-            assert document != null;
-            document.setEntityName(Product.class.getSimpleName());
+    private void mapDocument(Product product, List<Document> documents) {
+        for(var document : documents) {
+            document.setEntityName(product.getClass().getSimpleName());
             document.setDocIdentifier(product.getId());
-            documentRepository.save(document);
+            documentService.save(document);
         }
-    }
-
-    private Document getDocumentById(String id){
-        return documentRepository.findById(id).orElse(null);
     }
 
 

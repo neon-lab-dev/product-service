@@ -73,7 +73,7 @@ public class AddProductApi {
         if(Objects.isNull(product.getQuantity())){
             throw new InvalidInputException("Product Quantity is Mandatory.");
         }
-        if(files.size()>4){
+        if(Objects.nonNull(files) && files.size()>4){
             throw new InvalidInputException(IMAGE_UPLOAD_LIMIT_EXCEEDED);
         }
     }
