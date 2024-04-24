@@ -1,4 +1,5 @@
 package com.neonlab.product.dtos;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,12 +13,15 @@ import java.util.Map;
 @Data
 public class OrderDto {
     @NotNull(message = "Payment id should not be null")
+    @NotEmpty(message = "Payment id should not be empty")
     private String paymentId;
 
-    @NotNull(message = "Product code and Quantity should not be Null")
-    @NotEmpty(message = "Product code and Quantity should not be Empty")
-    private Map<String,Integer> productCodeAndQuantity;
+    @NotNull(message = "Product code and Quantity map should not be null")
+    @NotEmpty(message = "Product code and Quantity map should not be empty")
+    private Map<@NotEmpty(message = "Product code should not be empty") String,
+            @Min(value = 1, message = "Quantity must be at least 1") Integer> productCodeAndQuantity;
 
     @NotNull(message = "Address Id should not be null")
+    @NotEmpty(message = "Address Id should not be empty")
     private String addressId;
 }

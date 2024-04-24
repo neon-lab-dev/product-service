@@ -1,12 +1,16 @@
 package com.neonlab.product.entities;
+import com.neonlab.common.entities.Generic;
 import com.neonlab.common.entities.User;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.DriverDetailsDto;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.math.BigDecimal;
 
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 
@@ -15,7 +19,7 @@ import java.math.BigDecimal;
         @Index(name = "idx_payment_id",columnList = "payment_id")
 })
 
-public class Order {
+public class Order extends Generic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
@@ -26,13 +30,11 @@ public class Order {
     @Column(name = "payment_id",nullable = false)
     private String paymentId;
 
-    @Embedded
     @Column(name = "bought_product_details",nullable = false)
-    private BoughtProductDetailsDto boughtProductDetails;
+    private String boughtProductDetails;
 
-    @Embedded
     @Column(name = "driver_details",nullable = false)
-    private DriverDetailsDto driverDetails;
+    private String driverDetails;
 
     @Column(name = "total_item_cost",nullable = false)
     private BigDecimal totalItemCost;

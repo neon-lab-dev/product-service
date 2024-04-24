@@ -3,8 +3,9 @@ import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
-import com.neonlab.common.repositories.UserRepository;
+import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.AuthorizationUtil;
+import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.product.apis.DeleteProductApi;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.DriverDetailsDto;
@@ -30,14 +31,14 @@ public class OrderService {
     @Autowired
     private ProductService productService;
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
     @Autowired
     private DeleteProductApi deleteProductApi;
 
     @Transactional
     public ApiOutput<?> createOrder(OrderDto orderDto) throws InvalidInputException, ServerException {
         BigDecimal totalItemCost;
-        List<BoughtProductDetailsDto>boughtProductDetailsDtoList = new ArrayList<>();
+        List<BoughtProductDetailsDto> boughtProductDetailsDtoList = new ArrayList<>();
         try {
             for (String code : orderDto.getProductCodeAndQuantity().keySet()) {
                 Product product = productService.fetchProductByCode(code);
@@ -51,26 +52,28 @@ public class OrderService {
                     boughtProductDetailsDtoList.add(boughtProductDetailsDto);
                 }
             }
-            return new ApiOutput<>(HttpStatus.OK.value(), "Product Purchase Successful", boughtProductDetailsDtoList);
+            return new ApiOutput<> (HttpStatus.OK.value(), "Product Purchase Successful", boughtProductDetailsDtoList);
         }catch (NullPointerException e){
             throw new NullPointerException("Product code or Quantity should not be null");
         }
     }
 
-    private void mapOrder(OrderDto orderDto, BoughtProductDetailsDto boughtProductDetailsDto) {
+    private void mapOrder(OrderDto orderDto, BoughtProductDetailsDto boughtProductDetailsDto) throws InvalidInputException, ServerException {
         var order = new Order();
         var authUser = AuthorizationUtil.getCurrentUser();
         assert authUser != null;
-        var user = userRepository.findById(authUser.getUserId()).orElse(null);
+        var user = userService.fetchById(authUser.getUserId());
         order.setUser(user);
         order.setAddressId(orderDto.getAddressId());
         order.setPaymentId(orderDto.getPaymentId());
-        order.setBoughtProductDetails(boughtProductDetailsDto);
+        String boughtProductDetails = JsonUtils.jsonOf(boughtProductDetailsDto);
+        order.setBoughtProductDetails(boughtProductDetails);
         order.setTotalItemCost(boughtProductDetailsDto.getPrice());
         order.setDeliveryCharges(getDeliveryCharge());
         order.setTotalCost(boughtProductDetailsDto.getPrice().add(getDeliveryCharge()));
         var driverDetailsDto = mapDriverDetails();
-        order.setDriverDetails(driverDetailsDto);
+        String driverDetails = JsonUtils.jsonOf(driverDetailsDto);
+        order.setDriverDetails(driverDetails);
         orderRepository.save(order);
     }
 
