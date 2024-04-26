@@ -2,6 +2,7 @@ package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.ApiOutput;
+import com.neonlab.common.dto.AuthenticationRequest;
 import com.neonlab.common.entities.Address;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.entities.User;
@@ -31,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 
 
+
 @Service
 @Loggable
 public class OrderService {
@@ -47,18 +49,20 @@ public class OrderService {
     @Autowired
     private DocumentService documentService;
 
+
     @Transactional
     public ApiOutput<?> createOrder(OrderDto orderDto) throws InvalidInputException, ServerException {
-        var address = addressService.save(orderDto.getShippingInfoDto(),getUser());
+        Address shippingAddress = addressService.save(orderDto.getShippingInfo(), getUser());
         List<BoughtProductDetailsDto> boughtProductDetailsDtoList = new ArrayList<>();
-        List<Order> orderList = new ArrayList<>();
+        Order order = null;
+
         try {
-            for (String code : orderDto.getProductCodeAndQuantity().keySet()) {
-                Product product = productService.fetchProductByCode(code);
-                Integer qty = orderDto.getProductCodeAndQuantity().get(code);
-                int statusCode = reduceProductQuantity(qty, code);
+            for (var productAndQty : orderDto.getProductCodeAndQty()) {
+                Product product = productService.fetchProductByCode(productAndQty.getProductCode());
+                Integer qty = productAndQty.getQuantity();
+                int statusCode = reduceProductQuantity(qty, productAndQty.getProductCode());
                 if (statusCode == 200) {
-                    var boughtProductDetailsDto = ObjectMapperUtils.map(product,BoughtProductDetailsDto.class);
+                    var boughtProductDetailsDto = ObjectMapperUtils.map(product, BoughtProductDetailsDto.class);
                     boughtProductDetailsDto.setPrice(product.getPrice());
                     boughtProductDetailsDto.setQuantity(qty);
                     List<Document> documents = documentService.fetchByDocIdentifierAndEntityName(product.getId(),
@@ -69,19 +73,23 @@ public class OrderService {
                                     .map(Document::getId)
                                     .toList()
                     );
-                    orderList.add(mapOrder(orderDto, boughtProductDetailsDto,address));
                     boughtProductDetailsDtoList.add(boughtProductDetailsDto);
                 }
             }
-            var orderResponseDto = mapOrderResponse(boughtProductDetailsDtoList,address,orderList);
 
-            return new ApiOutput<> (HttpStatus.OK.value(), "Product Purchase Successful", orderResponseDto);
-        }catch (NullPointerException e){
+            if (!boughtProductDetailsDtoList.isEmpty()) {
+                order = mapOrder(orderDto.getPaymentId(), boughtProductDetailsDtoList, shippingAddress);
+            }
+
+            var orderResponseDto = mapOrderResponse(boughtProductDetailsDtoList, shippingAddress, order);
+            return new ApiOutput<>(HttpStatus.OK.value(), "Product Purchase Successful", orderResponseDto);
+        } catch (NullPointerException e) {
             throw new NullPointerException("Product code or Quantity should not be null");
         }
     }
 
-    private OrderResponseDto mapOrderResponse(List<BoughtProductDetailsDto> boughtProductDetailsDtoList, Address address, List<Order> orderList) throws ServerException, InvalidInputException {
+
+    private OrderResponseDto mapOrderResponse(List<BoughtProductDetailsDto> boughtProductDetailsDtoList, Address address, Order order) throws ServerException, InvalidInputException {
         var orderResponseDto = new OrderResponseDto();
         orderResponseDto.setBoughtProductDetailsDtoList(boughtProductDetailsDtoList);
         BigDecimal totalOrderedItemsPrice = BigDecimal.ZERO;
@@ -103,10 +111,8 @@ public class OrderService {
         var userDetails = ObjectMapperUtils.map(user, UserDetailsDto.class);
         orderResponseDto.setUserDetailsDto(userDetails);
         orderResponseDto.setPaymentStatus("Success");// default
-        for(var order : orderList) {
-            orderResponseDto.setCreatedAt(order.getCreatedAt());
-            orderResponseDto.setPaymentId(order.getPaymentId());
-        }
+        orderResponseDto.setCreatedAt(order.getCreatedAt());
+        orderResponseDto.setPaymentId(order.getPaymentId());
         orderResponseDto.setPaidDate(new Date());
         orderResponseDto.setDeliveredAt(getDefaultDeliveredAt());
         return orderResponseDto;
@@ -123,20 +129,25 @@ public class OrderService {
         return userService.fetchById(authUser.getUserId());
     }
 
-    private Order mapOrder(OrderDto orderDto, BoughtProductDetailsDto boughtProductDetailsDto, Address address) throws InvalidInputException, ServerException {
-        var order = new Order();
+    private Order mapOrder(String paymentId, List<BoughtProductDetailsDto> boughtProductDetailsDto, Address address) throws InvalidInputException, ServerException {
+        AuthenticationRequest request = new AuthenticationRequest();
+        var order = new Order(request.getPhone(),request.getPhone());
         var user = getUser();
         order.setUser(user);
         order.setAddressId(address.getId());
-        order.setPaymentId(orderDto.getPaymentId());
+        order.setPaymentId(paymentId);
         String boughtProductDetails = JsonUtils.jsonOf(boughtProductDetailsDto);
         order.setBoughtProductDetails(boughtProductDetails);
-        order.setTotalItemCost(boughtProductDetailsDto.getPrice());
+        for(var boughtProduct : boughtProductDetailsDto) {
+            order.setTotalItemCost(boughtProduct.getPrice());
+            order.setTotalCost(boughtProduct.getPrice().add(getDeliveryCharge()));
+        }
         order.setDeliveryCharges(getDeliveryCharge());
-        order.setTotalCost(boughtProductDetailsDto.getPrice().add(getDeliveryCharge()));
+        order.setOrderStatus(OrderStatus.PROCESSING);
         var driverDetailsDto = mapDriverDetails();
         String driverDetails = JsonUtils.jsonOf(driverDetailsDto);
         order.setDriverDetails(driverDetails);
+        order.setCreatedBy(userService.getLoggedInUser().getId());
         return orderRepository.save(order);
     }
 
@@ -157,6 +168,26 @@ public class OrderService {
     }
 
     private BigDecimal getDeliveryCharge(){
-        return BigDecimal.valueOf(0);
+        return BigDecimal.ZERO;
+    }
+
+    public ApiOutput<?> updateOrder(String orderId,String orderStatus) throws InvalidInputException, ServerException {
+        var existOrder = fetchOrderById(orderId);
+            existOrder.setOrderStatus(OrderStatus.fromString(orderStatus));
+            orderRepository.save(existOrder);
+       return new ApiOutput<>(HttpStatus.OK.value(), "Order Status Change",existOrder.getOrderStatus());
+    }
+
+
+    public ApiOutput<?> cancelOrder(String orderId) throws InvalidInputException {
+        var order = fetchOrderById(orderId);
+        orderRepository.delete(order);
+        return new ApiOutput<>(HttpStatus.OK.value(), "Your Order Cancel Successfully",null);
+    }
+
+    private Order fetchOrderById(String orderId) throws InvalidInputException {
+       return orderRepository.findById(orderId).
+                orElseThrow(()->new InvalidInputException("Not Found Order Details with this id "+orderId));
+
     }
 }

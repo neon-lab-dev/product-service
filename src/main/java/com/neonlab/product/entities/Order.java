@@ -1,12 +1,11 @@
 package com.neonlab.product.entities;
-import com.neonlab.common.entities.Address;
 import com.neonlab.common.entities.Generic;
 import com.neonlab.common.entities.User;
-import com.neonlab.product.dtos.BoughtProductDetailsDto;
-import com.neonlab.product.dtos.DriverDetailsDto;
+import com.neonlab.product.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -14,13 +13,18 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-
+@NoArgsConstructor
 @Table(name = "`order`", indexes = {
         @Index(name = "idx_user_id",columnList = "user_id"),
         @Index(name = "idx_payment_id",columnList = "payment_id")
 })
 
 public class Order extends Generic {
+
+    public Order(String createdBy, String modifiedBy){
+        super(createdBy, modifiedBy);
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
@@ -33,6 +37,9 @@ public class Order extends Generic {
 
     @Column(name = "bought_product_details",nullable = false)
     private String boughtProductDetails;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus;
 
     @Column(name = "driver_details",nullable = false)
     private String driverDetails;
