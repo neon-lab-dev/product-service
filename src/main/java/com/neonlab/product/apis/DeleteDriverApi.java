@@ -3,7 +3,6 @@ package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
-import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.service.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +13,7 @@ import java.util.List;
 @Service
 @Loggable
 public class DeleteDriverApi {
+
     @Autowired
     private DriverService driverService;
 

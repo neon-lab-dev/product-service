@@ -50,7 +50,7 @@ public class DriverService {
             driver.setVehicleNo(driverDto.getVehicleNo());
         }
         Driver updatedDriver=driverRepository.save(driver);
-        DriverDto response=new DriverDto(driver.getId(),driver.getName(),driver.getContactNo(),driver.getVehicleNo(), driverDto.isAvailable());
+        DriverDto response=new DriverDto(updatedDriver.getId(),updatedDriver.getName(),updatedDriver.getContactNo(),updatedDriver.getVehicleNo(), updatedDriver.isAvailable());
         return response;
     }
 }
