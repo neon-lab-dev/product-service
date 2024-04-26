@@ -14,12 +14,5 @@ public class UserDetailsDto {
     private String name;
     private String email;
     private String primaryPhoneNo;
-
-    /*
-    @OneToMany(mappedBy = "UserDetailsDto",fetch = FetchType.LAZY)
-    List<Order>orderList;
-
-     */
-
 }
 

@@ -1,4 +1,5 @@
 package com.neonlab.product.entities;
+import com.neonlab.common.entities.Address;
 import com.neonlab.common.entities.Generic;
 import com.neonlab.common.entities.User;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
@@ -24,11 +25,11 @@ public class Order extends Generic {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "address_id",nullable = false)
-    private String addressId;
-
     @Column(name = "payment_id",nullable = false)
     private String paymentId;
+
+    @Column(name = "address_id",nullable = false)
+    private Long addressId;
 
     @Column(name = "bought_product_details",nullable = false)
     private String boughtProductDetails;
