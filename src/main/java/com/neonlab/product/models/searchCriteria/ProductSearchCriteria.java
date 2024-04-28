@@ -1,6 +1,5 @@
 package com.neonlab.product.models.searchCriteria;
 
-
 import com.neonlab.common.models.searchCriteria.PageableSearchCriteria;
 import lombok.Builder;
 import lombok.Data;

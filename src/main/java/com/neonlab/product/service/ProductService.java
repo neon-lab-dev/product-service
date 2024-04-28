@@ -172,7 +172,7 @@ public class ProductService {
     }
 
 
-    public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
+    public String deleteProduct(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
         Product product = fetchProductByCode(productDeleteReq.getCode());
         if(productDeleteReq.getDeleteProduct()){
             return deleteWholeProduct(product);

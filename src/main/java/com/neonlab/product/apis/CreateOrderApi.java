@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-
 
 @Service
 public class CreateOrderApi {
@@ -22,15 +19,12 @@ public class CreateOrderApi {
     private ValidationUtils validationUtils;
 
     public ApiOutput<?> createOrder(OrderDto orderDto) {
-
-        Optional<String> errorMessage = validationUtils.validation(orderDto,"orderDto");
-       if(errorMessage.isPresent()){
-           return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), errorMessage.get());
-       }
         try {
+            validationUtils.validation(orderDto,"orderDto");
             return orderService.createOrder(orderDto);
         } catch (InvalidInputException | ServerException e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
+
 }
