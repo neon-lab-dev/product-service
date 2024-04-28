@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 
 
@@ -29,28 +28,28 @@ public class Order extends Generic {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "payment_id",nullable = false)
+    @Column(name = "payment_id", nullable = false)
     private String paymentId;
 
-    @Column(name = "address_id",nullable = false)
-    private Long addressId;
+    @Column(name = "address_id", nullable = false)
+    private String addressId;
 
-    @Column(name = "bought_product_details",nullable = false)
+    @Column(name = "bought_product_details", columnDefinition = "json", nullable = false)
     private String boughtProductDetails;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
-    @Column(name = "driver_details",nullable = false)
-    private String driverDetails;
+    @Column(name = "driver_Id")
+    private String driverId;
 
-    @Column(name = "total_item_cost",nullable = false)
+    @Column(name = "total_item_cost", nullable = false)
     private BigDecimal totalItemCost;
 
-    @Column(name = "delivery_charges",nullable = false)
+    @Column(name = "delivery_charges", nullable = false)
     private BigDecimal deliveryCharges;
 
-    @Column(name = "total_cost",nullable = false)
+    @Column(name = "total_cost", nullable = false)
     private BigDecimal totalCost;
 
     @ManyToOne
