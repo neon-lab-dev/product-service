@@ -11,7 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PageableResponse<T> {
-
     private int perPage;
     private int pageNo;
     private String sortBy;

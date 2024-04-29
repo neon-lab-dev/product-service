@@ -1,3 +1,4 @@
+
 package com.neonlab.product.controller;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
@@ -38,7 +39,7 @@ public class ProductController {
     @DeleteMapping("/delete")
    @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<?>deleteProduct(@RequestBody ProductDeleteReq productDeleteReq){
-            return deleteProductApi.deleteProductApi(productDeleteReq);
+        return deleteProductApi.process(productDeleteReq);
     }
 
     @PutMapping("/update")

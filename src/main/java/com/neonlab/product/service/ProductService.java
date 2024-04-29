@@ -2,7 +2,6 @@ package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
-import com.neonlab.common.repositories.DocumentRepository;
 import com.neonlab.common.services.BoundedQueue;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.UserService;
@@ -23,11 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
 
 
 @Service
@@ -176,7 +172,7 @@ public class ProductService {
     }
 
 
-    public String deleteProductApi(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
+    public String deleteProduct(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
         Product product = fetchProductByCode(productDeleteReq.getCode());
         if(productDeleteReq.getDeleteProduct()){
             return deleteWholeProduct(product);

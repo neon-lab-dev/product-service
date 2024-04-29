@@ -20,12 +20,12 @@ public class DeleteProductApi {
     @Autowired
     private ProductService productService;
 
-    public ApiOutput<?>deleteProductApi(ProductDeleteReq productDeleteReq){
+    public ApiOutput<?> process(ProductDeleteReq productDeleteReq){
 
         try {
             validate(productDeleteReq);
-            String status = productService.deleteProductApi(productDeleteReq);
-                return new ApiOutput<>(HttpStatus.OK.value(), status, null);
+            String status = productService.deleteProduct(productDeleteReq);
+                return new ApiOutput<>(HttpStatus.OK.value(), status, true);
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }

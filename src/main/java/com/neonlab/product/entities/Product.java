@@ -1,10 +1,12 @@
 package com.neonlab.product.entities;
+import com.neonlab.common.entities.Document;
 import com.neonlab.common.entities.Generic;
 import com.neonlab.product.enums.Units;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Entity

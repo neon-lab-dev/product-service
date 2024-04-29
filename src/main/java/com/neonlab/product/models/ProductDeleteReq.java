@@ -1,5 +1,4 @@
 package com.neonlab.product.models;
-import jakarta.persistence.Column;
 import lombok.Data;
 
 
@@ -7,5 +6,5 @@ import lombok.Data;
 public class ProductDeleteReq {
     private String code;
     private Integer quantity;
-    private Boolean deleteProduct;
+    private Boolean deleteProduct=false;
 }
