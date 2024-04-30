@@ -29,7 +29,7 @@ import java.util.Optional;
 @Slf4j
 public class DriverService {
 
-    public final static String DELETE_MESSAGE = "Drivers Has been deleted.";
+    public final static String DELETE_MESSAGE = "Driver has been deleted.";
 
     @Autowired
     private DriverRepository driverRepository;
