@@ -1,9 +1,7 @@
 package com.neonlab.product.entities;
 import com.neonlab.common.entities.Generic;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.neonlab.common.entities.User;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
