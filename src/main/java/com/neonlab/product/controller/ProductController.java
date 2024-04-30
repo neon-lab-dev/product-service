@@ -29,11 +29,8 @@ public class ProductController {
 
     @PostMapping("/add")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<ProductDto> addProduct(
-            @RequestParam("productDetails") String productJson,
-            @RequestParam(value = "files", required = false) List<MultipartFile> files) {
-
-        return addProductApi.createProduct(productJson , files);
+    public ApiOutput<ProductDto> addProduct(@RequestBody ProductDto productDto) {
+        return addProductApi.createProduct(productDto);
     }
 
     @DeleteMapping("/delete")

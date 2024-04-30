@@ -8,8 +8,12 @@ import lombok.Getter;
 public enum Units {
     KG("kg"),
     GRAM("gm"),
-    PCS("pcs");
-    public final String unit;
+    PCS("pcs"),
+    S("small"),
+    L("large"),
+    XL("extra large"),
+    M("medium");
+    private final String unit;
     Units(String unit) {
         this.unit = unit;
     }

@@ -35,20 +35,11 @@ public class Product extends Generic {
     private String description;
     @Column(name = "brand")
     private String brand;
-    @Column(name = "code",nullable = false,unique = true)
-    private String code;
-    @Column(name = "price",nullable = false)
-    private BigDecimal price =  BigDecimal.valueOf(0.0);
-    @Column(name = "discount_percent")
-    private BigDecimal discountPercent = BigDecimal.valueOf(0.0);//not null
-    @Enumerated(EnumType.STRING)
-    private Units units;
-    @Column(name = "variety",nullable = false)
-    private String variety;
-    @Column(name = "quantity",nullable = false)
-    private Integer quantity;
     @Column(name = "tags",nullable = false)
     private String tags;//not null
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<Variety> varieties;
 
     public Product(){
         super();

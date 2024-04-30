@@ -7,12 +7,15 @@ import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.ProductDto;
+import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
+import com.neonlab.product.entities.Variety;
 import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.models.responses.PageableResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
 import com.neonlab.common.utilities.ObjectMapperUtils;
+import com.neonlab.product.repository.VarietyRepository;
 import com.neonlab.product.repository.specifications.ProductSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,25 +54,44 @@ public class ProductService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private VarietyRepository varietyRepository;
 
-    public ProductDto addProduct(ProductDto productReqDto , List<MultipartFile> files) throws ServerException, InvalidInputException {
-        var documents =  documentService.saveAll(files);
-        var product = ObjectMapperUtils.map(productReqDto, Product.class);
-        productReqDto.setDocumentIds(
-                documents.stream()
-                        .map(Document::getId)
-                        .toList()
-                );
-        mapDocument(product , documents);
-        setDefaults(product);
-        product.setCreatedBy(userService.getLoggedInUser().getId());
-        product = productRepository.save(product);
-        return ObjectMapperUtils.map(product, ProductDto.class);
+
+    public ProductDto addProduct(ProductDto productReqDto) throws ServerException, InvalidInputException {
+        var product = saveProduct(productReqDto);
+        var varieties = saveAndMapVarieties(product, productReqDto.getVarieties());
+        var retVal = ObjectMapperUtils.map(product, ProductDto.class);
+        retVal.setVarieties(varieties);
+        return retVal;
     }
 
-    private void setDefaults(Product product) {
-        product.setBrand(BRAND);
-        product.setTags(TAG);
+    private Product saveProduct(ProductDto productDto) throws ServerException, InvalidInputException {
+        var retVal = ObjectMapperUtils.map(productDto, Product.class);
+        var user = userService.getLoggedInUser();
+        retVal.setCreatedBy(user.getPrimaryPhoneNo());
+        retVal.setCreatedAt(new Date());
+        retVal.setModifiedAt(new Date());
+        return productRepository.save(retVal);
+    }
+
+    private List<VarietyDto> saveAndMapVarieties(Product product, List<VarietyDto> varieties) throws ServerException, InvalidInputException {
+        var retVal = new ArrayList<VarietyDto>();
+        for (var varietyDto : varieties){
+            var variety = saveVariety(varietyDto,product);
+            retVal.add(ObjectMapperUtils.map(variety, VarietyDto.class));
+        }
+        return retVal;
+    }
+
+    private Variety saveVariety(VarietyDto varietyDto, Product product) throws ServerException, InvalidInputException {
+        var entity = ObjectMapperUtils.map(varietyDto, Variety.class);
+        var user = userService.getLoggedInUser();
+        entity.setCreatedBy(user.getPrimaryPhoneNo());
+        entity.setCreatedAt(new Date());
+        entity.setModifiedAt(new Date());
+        entity.setProduct(product);
+        return varietyRepository.save(entity);
     }
 
     public boolean existingProduct(String code) {
