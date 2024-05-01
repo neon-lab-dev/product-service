@@ -34,7 +34,7 @@ public class AddProductApi {
 
     private void validate (ProductDto product) throws InvalidInputException {
         try {
-            validationUtils.validation(product);
+            validationUtils.validate(product);
         } catch (ConstraintViolationException e) {
             throw new InvalidInputException(e.getMessage());
         }

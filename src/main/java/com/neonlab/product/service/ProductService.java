@@ -6,7 +6,6 @@ import com.neonlab.common.services.BoundedQueue;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.PageableUtils;
-import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
@@ -23,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -119,67 +119,25 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto updateProduct(ProductDto product , List<MultipartFile> files) throws ServerException, InvalidInputException, IOException {
-        /*boolean flag = true;
-        Product existProducts = fetchProductByCode(product.getCode());
-        if(product.getName() != null){
-            flag = false;
-            existProducts.setName(product.getName());
-        }
-        if(product.getQuantity() != null){
-            flag = false;
-            existProducts.setQuantity(product.getQuantity());
-        }
-        if(product.getBrand() != null){
-            flag = false;
-            existProducts.setBrand(product.getBrand());
-        }
-        if(product.getCategory() != null){
-            flag = false;
-            existProducts.setCategory(product.getCategory());
-        }
-        if(product.getSubCategory() != null){
-            existProducts.setSubCategory(product.getSubCategory());
-            flag = false;
-        }
-        if(product.getDescription() != null){
-            flag = false;
-            existProducts.setDescription(product.getDescription());
-        }
-        if(product.getPrice() != null){
-            flag = false;
-            existProducts.setPrice(product.getPrice());
-        }
-        if(product.getDiscountPercent() != null){
-            flag = false;
-            existProducts.setDiscountPercent(product.getDiscountPercent());
-        }
-        if(product.getUnits() != null && product.getUnits().getUnit() != null){
-            flag = false;
-            existProducts.setUnits(product.getUnits());
-        }
-        if(product.getVariety() != null){
-            flag = false;
-            existProducts.setVariety(product.getVariety());
-        }
-        if(flag){
-            throw new InvalidInputException("Please add at-least one value to update");
-        }
-        productRepository.save(existProducts);
-        List<String> boundedDocumentId = new ArrayList<>();
-        if(files != null && !files.isEmpty()) {
+    public ProductDto update(ProductDto product) throws ServerException, InvalidInputException, IOException {
+       var productEntity = ObjectMapperUtils.map(product, Product.class);
+       productEntity = productRepository.save(productEntity);
+       var varieties = new ArrayList<VarietyDto>();
+       for (var dto : product.getVarieties()){
+           var varietyEntity = ObjectMapperUtils.map(dto, Variety.class);
+           varietyEntity = varietyRepository.save(varietyEntity);
+           updateDocumentIfRequired(dto, varietyEntity);
+           varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
+       }
+       var retVal = ObjectMapperUtils.map(productEntity, ProductDto.class);
+       retVal.setVarieties(varieties);
+       return retVal;
+    }
 
-            var documentIds = new ArrayList<>(documentService.saveAll(files).stream()
-                    .map(Document::getId)
-                    .toList());
-            List<Document> documents = enforceDocumentLimitForProduct(documentIds,existProducts);
-            for(Document document : documents){
-                boundedDocumentId.add(document.getId());
-            }
+    private void updateDocumentIfRequired(VarietyDto varietyDto, Variety variety) throws ServerException {
+        if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
+            saveAndMapDocument(varietyDto, variety);
         }
-        ProductDto productDto = ObjectMapperUtils.map(existProducts , ProductDto.class);
-        productDto.setDocumentIds(boundedDocumentId);*/
-        return null;
     }
 
     @Transactional

@@ -21,7 +21,7 @@ public class CreateOrderApi {
 
     public ApiOutput<?> createOrder(OrderDto orderDto) {
         try {
-            validationUtils.validation(orderDto);
+            validationUtils.validate(orderDto);
             return orderService.createOrder(orderDto);
         } catch (ConstraintViolationException | InvalidInputException  | ServerException e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());

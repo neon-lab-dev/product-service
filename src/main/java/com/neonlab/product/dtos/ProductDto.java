@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductDto {
+    private String id;
     @NotEmpty(message = "Product name is mandatory.")
     private String name;
     @NotEmpty(message = "Product code is mandatory.")

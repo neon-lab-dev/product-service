@@ -41,11 +41,8 @@ public class ProductController {
 
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<ProductDto> updateProduct(
-            @RequestParam("ProductDetails") String productJson,
-            @ModelAttribute List<MultipartFile> files){
-
-        return updateProductApi.updateProduct(productJson , files);
+    public ApiOutput<ProductDto> updateProduct(@ModelAttribute ProductDto product){
+        return updateProductApi.updateProduct(product);
     }
 
     @GetMapping("/list")
