@@ -40,7 +40,7 @@ public class Product extends Generic {
     @Column(name = "price",nullable = false)
     private BigDecimal price =  BigDecimal.valueOf(0.0);
     @Column(name = "discount_percent")
-    private BigDecimal discountPercent = BigDecimal.valueOf(0.0);//not null
+    private BigDecimal discountPercent = BigDecimal.ZERO;//not null
     @Enumerated(EnumType.STRING)
     private Units units;
     @Column(name = "variety",nullable = false)

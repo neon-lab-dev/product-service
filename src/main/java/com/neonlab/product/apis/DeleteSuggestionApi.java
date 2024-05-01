@@ -12,11 +12,11 @@ import java.util.List;
 public class DeleteSuggestionApi {
 
     @Autowired
-    SuggestionService suggestionService;
+    private SuggestionService suggestionService;
 
-    public ApiOutput<?> deleteSuggestion(List<String> suggestionId) {
+    public ApiOutput<?> delete(List<String> suggestionId) {
         try{
-            return suggestionService.deleteSuggestion(suggestionId);
+            return new ApiOutput<>(HttpStatus.OK.value(), null,suggestionService.delete(suggestionId));
         }catch (Exception e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }

@@ -6,7 +6,6 @@ import com.neonlab.product.apis.SuggestionApi;
 import com.neonlab.product.dtos.SuggestionDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 
@@ -20,17 +19,17 @@ public class SuggestionController {
     private final DeleteSuggestionApi deleteSuggestionApi;
 
     @PostMapping("/create")
-    public ApiOutput<SuggestionDto> createSuggestion(@RequestBody SuggestionDto suggestionDto){
-        return suggestionApi.createSuggestion(suggestionDto);
+    public ApiOutput<SuggestionDto> create(@RequestBody SuggestionDto suggestionDto){
+        return suggestionApi.create(suggestionDto);
     }
 
     @GetMapping("all")
-    public ApiOutput<List<SuggestionDto>> fetchSuggestion(){
-        return fetchSuggestionApi.fetchSuggestion();
+    public ApiOutput<?> fetch(){
+        return fetchSuggestionApi.fetch();
     }
 
     @DeleteMapping("/remove")
-    public ApiOutput<?> deleteSuggestion(@RequestBody List<String> suggestionId){
-        return deleteSuggestionApi.deleteSuggestion(suggestionId);
+    public ApiOutput<?> delete(@RequestBody List<String> suggestionId){
+        return deleteSuggestionApi.delete(suggestionId);
     }
 }

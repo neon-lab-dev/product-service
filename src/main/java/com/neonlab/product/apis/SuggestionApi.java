@@ -15,14 +15,14 @@ import org.springframework.stereotype.Service;
 public class SuggestionApi {
 
     @Autowired
-    SuggestionService suggestionService;
+    private SuggestionService suggestionService;
     @Autowired
-    ValidationUtils validationUtils;
+    private ValidationUtils validationUtils;
 
-    public ApiOutput<SuggestionDto> createSuggestion(SuggestionDto suggestionDto) {
+    public ApiOutput<SuggestionDto> create(SuggestionDto suggestionDto) {
         try {
             validationUtils.validation(suggestionDto,"suggestionDto");
-            return suggestionService.createSuggestion(suggestionDto);
+            return new ApiOutput<>(HttpStatus.OK.value(),"Thank Your for giving me suggestion" ,suggestionService.create(suggestionDto));
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
