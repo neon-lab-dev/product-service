@@ -6,6 +6,7 @@ import com.neonlab.common.services.BoundedQueue;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.PageableUtils;
+import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
@@ -58,30 +59,49 @@ public class ProductService {
     private VarietyRepository varietyRepository;
 
 
-    public ProductDto addProduct(ProductDto productReqDto) throws ServerException, InvalidInputException {
-        var product = saveProduct(productReqDto);
+    public ProductDto add(ProductDto productReqDto) throws ServerException, InvalidInputException {
+        var product = save(productReqDto);
         var varieties = saveAndMapVarieties(product, productReqDto.getVarieties());
         var retVal = ObjectMapperUtils.map(product, ProductDto.class);
         retVal.setVarieties(varieties);
         return retVal;
     }
 
-    private Product saveProduct(ProductDto productDto) throws ServerException, InvalidInputException {
+    private Product save(ProductDto productDto) throws ServerException, InvalidInputException {
         var retVal = ObjectMapperUtils.map(productDto, Product.class);
+        setDefaultIfRequired(retVal);
         var user = userService.getLoggedInUser();
         retVal.setCreatedBy(user.getPrimaryPhoneNo());
         retVal.setCreatedAt(new Date());
-        retVal.setModifiedAt(new Date());
         return productRepository.save(retVal);
+    }
+
+    private void setDefaultIfRequired(Product product){
+        if (Objects.nonNull(product.getBrand()) && product.getBrand().isEmpty()){
+            product.setBrand(BRAND);
+        }
+        if (Objects.nonNull(product.getTags()) && product.getTags().isEmpty()){
+            product.setTags(TAG);
+        }
     }
 
     private List<VarietyDto> saveAndMapVarieties(Product product, List<VarietyDto> varieties) throws ServerException, InvalidInputException {
         var retVal = new ArrayList<VarietyDto>();
         for (var varietyDto : varieties){
             var variety = saveVariety(varietyDto,product);
+            saveAndMapDocument(varietyDto, variety);
             retVal.add(ObjectMapperUtils.map(variety, VarietyDto.class));
         }
         return retVal;
+    }
+
+    private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
+        var documents = documentService.saveAll(varietyDto.getDocuments());
+        for (var document : documents){
+            document.setDocIdentifier(variety.getId());
+            document.setEntityName(variety.getClass().getSimpleName());
+            documentService.save(document);
+        }
     }
 
     private Variety saveVariety(VarietyDto varietyDto, Product product) throws ServerException, InvalidInputException {
@@ -100,7 +120,7 @@ public class ProductService {
 
     @Transactional
     public ProductDto updateProduct(ProductDto product , List<MultipartFile> files) throws ServerException, InvalidInputException, IOException {
-        boolean flag = true;
+        /*boolean flag = true;
         Product existProducts = fetchProductByCode(product.getCode());
         if(product.getName() != null){
             flag = false;
@@ -158,8 +178,8 @@ public class ProductService {
             }
         }
         ProductDto productDto = ObjectMapperUtils.map(existProducts , ProductDto.class);
-        productDto.setDocumentIds(boundedDocumentId);
-        return productDto;
+        productDto.setDocumentIds(boundedDocumentId);*/
+        return null;
     }
 
     @Transactional
@@ -196,7 +216,7 @@ public class ProductService {
 
 
     public String deleteProduct(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
-        Product product = fetchProductByCode(productDeleteReq.getCode());
+        /*Product product = fetchProductByCode(productDeleteReq.getCode());
         if(productDeleteReq.getDeleteProduct()){
             return deleteWholeProduct(product);
         }
@@ -205,14 +225,15 @@ public class ProductService {
         Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
         product.setQuantity(currentQuantity);
         productRepository.save(product);
-        log.warn("Now Your Product Quantity is {}", currentQuantity);
+        log.warn("Now Your Product Quantity is {}", currentQuantity);*/
         return DELETE_MESSAGE;
     }
 
     public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
-        Product product = fetchProductByCode(code);
+        /*Product product = fetchProductByCode(code);
         assert quantity != null;
-        return product.getQuantity()>=quantity;
+        return product.getQuantity()>=quantity;*/
+        return true;
     }
 
     public String deleteWholeProduct(Product product) {

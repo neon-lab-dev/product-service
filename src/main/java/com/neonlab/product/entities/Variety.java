@@ -6,6 +6,7 @@ import com.neonlab.product.enums.VarietyType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "variety")
+@NoArgsConstructor
 public class Variety extends Generic {
 
     public Variety(String createdBy, String modifiedBy){
@@ -25,13 +27,13 @@ public class Variety extends Generic {
     @Enumerated(EnumType.STRING)
     @Column(name = "type",nullable = false)
     private VarietyType type;
+    @Column(name = "value", nullable = false)
+    private Integer value;
     @Enumerated(EnumType.STRING)
     @Column(name = "unit", nullable = false)
     private Units unit;
     @Column(name = "description",nullable = false)
     private String description;
-    @Column(name = "code",nullable = false,unique = true)
-    private String code;
     @Column(name = "price",nullable = false)
     private BigDecimal price;
     @Column(name = "discount_percent")

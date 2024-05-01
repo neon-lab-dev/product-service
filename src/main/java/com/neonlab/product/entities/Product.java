@@ -29,13 +29,15 @@ public class Product extends Generic {
     private String name;
     @Column(name = "category",nullable = false)
     private String category;
+    @Column(name = "code",nullable = false)
+    private String code;
     @Column(name = "sub_category",nullable = false)
     private String subCategory;
     @Column(name = "description",nullable = false)
     private String description;
     @Column(name = "brand")
     private String brand;
-    @Column(name = "tags",nullable = false)
+    @Column(name = "tags")
     private String tags;//not null
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)

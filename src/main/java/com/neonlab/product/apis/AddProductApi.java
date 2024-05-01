@@ -24,7 +24,7 @@ public class AddProductApi {
 
         try {
             validate(productDto);
-            var retVal = productService.addProduct(productDto);
+            var retVal = productService.add(productDto);
             return new ApiOutput<>(HttpStatus.OK.value(), "Product Added Successfully", retVal);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());

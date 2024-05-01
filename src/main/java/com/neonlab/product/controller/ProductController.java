@@ -27,10 +27,10 @@ public class ProductController {
     private final UpdateProductApi updateProductApi;
     private final FetchProductApi fetchProductApi;
 
-    @PostMapping("/add")
+    @PostMapping(value = "/add")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<ProductDto> addProduct(@RequestBody ProductDto productDto) {
-        return addProductApi.createProduct(productDto);
+    public ApiOutput<ProductDto> addProduct(@ModelAttribute ProductDto product) {
+        return addProductApi.createProduct(product);
     }
 
     @DeleteMapping("/delete")
