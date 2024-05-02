@@ -10,21 +10,22 @@ import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
-import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.models.responses.PageableResponse;
+import com.neonlab.product.models.responses.ProductVarietyResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
 import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.product.repository.VarietyRepository;
-import com.neonlab.product.repository.specifications.ProductSpecifications;
+import com.neonlab.product.repository.specifications.VarietySpecifications;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -111,6 +112,9 @@ public class ProductService {
         entity.setCreatedAt(new Date());
         entity.setModifiedAt(new Date());
         entity.setProduct(product);
+        if(Objects.isNull(entity.getDiscountPercent())){
+            entity.setDiscountPercent(BigDecimal.valueOf(0));
+        }
         return varietyRepository.save(entity);
     }
 
@@ -198,14 +202,14 @@ public class ProductService {
                 .orElseThrow(() -> new InvalidInputException("Product not found with code "+code));
     }
 
-    public PageableResponse<ProductDto> fetchProducts(final ProductSearchCriteria searchCriteria){
+    public PageableResponse<ProductVarietyResponse> fetchProducts(final ProductSearchCriteria searchCriteria){
         var pageable = PageableUtils.createPageable(searchCriteria);
-        Page<Product> products = productRepository.findAll(
-                ProductSpecifications.buildSearchCriteria(searchCriteria),
+        Page<Variety> varieties = varietyRepository.findAll(
+                VarietySpecifications.buildSearchCriteria(searchCriteria),
                 pageable
         );
-        var reslutList = products.getContent().stream()
-                .map(ProductService::getProductDto)
+        var reslutList = varieties.getContent().stream()
+                .map(this::getProductVarietyResponse)
                 .filter(Objects::nonNull)
                 .toList();
         return new PageableResponse<>(reslutList, searchCriteria);
@@ -215,15 +219,32 @@ public class ProductService {
      * takes product entity as input and gives productDto. In case
      * of error return null.
      *
-     * @param product product entity
-     * @return null or productDto
+     * @param variety variety entity
+     * @return null or Product Variety Response
      */
-    private static ProductDto getProductDto(Product product) {
-        ProductDto retVal = null;
+    private ProductVarietyResponse getProductVarietyResponse(Variety variety) {
+        ProductVarietyResponse retVal = null;
         try{
-            retVal = ObjectMapperUtils.map(product, ProductDto.class);
-        } catch (ServerException ignored){}
+            var product = fetchById(variety.getProduct().getId());
+            var documents = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
+            var documentIds = documents.stream()
+                    .map(Document::getId)
+                    .toList();
+            retVal = ProductVarietyResponse.buildByProductVarietyAndDocuments()
+                    .product(product)
+                    .variety(variety)
+                    .documents(documentIds)
+                    .build();
+        } catch (InvalidInputException ignored){}
         return retVal;
+    }
+
+    private Product fetchById(String id) throws InvalidInputException {
+        var retVal = productRepository.findById(id);
+        if (retVal.isPresent()){
+            return retVal.get();
+        }
+        throw new InvalidInputException("Product not found with Id "+id);
     }
 
 }

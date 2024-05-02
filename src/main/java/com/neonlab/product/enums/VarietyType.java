@@ -10,16 +10,15 @@ import java.util.Objects;
 @Getter
 public enum VarietyType {
 
-    SIZE("size", List.of("S", "L","M","XL")),
-    WEIGHT("weight", List.of("kg", "gms")),
-    PACK_OF("pack of", List.of("pcs"));
+    SIZE("size"),
+    WEIGHT("weight"),
+    PACK_OF("pack of"),
+    PRICE("price");
 
     private final String value;
-    private final List<String> supportedUnits;
 
-    VarietyType(String value, List<String> supportedUnits){
+    VarietyType(String value){
         this.value = value;
-        this.supportedUnits = supportedUnits;
     }
 
     public static VarietyType fromString(String value) throws InvalidInputException {

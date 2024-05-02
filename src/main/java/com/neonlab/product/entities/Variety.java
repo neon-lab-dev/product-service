@@ -28,7 +28,7 @@ public class Variety extends Generic {
     @Column(name = "type",nullable = false)
     private VarietyType type;
     @Column(name = "value", nullable = false)
-    private Integer value;
+    private String value;
     @Enumerated(EnumType.STRING)
     @Column(name = "unit", nullable = false)
     private Units unit;
@@ -36,8 +36,8 @@ public class Variety extends Generic {
     private String description;
     @Column(name = "price",nullable = false)
     private BigDecimal price;
-    @Column(name = "discount_percent")
-    private BigDecimal discountPercent = BigDecimal.valueOf(0.0);//not null
+    @Column(name = "discount_percent", columnDefinition = "decimal(38,2) default 0.0")
+    private BigDecimal discountPercent;
     @Column(name = "quantity",nullable = false)
     private Integer quantity;
     @ManyToOne(fetch = FetchType.LAZY)

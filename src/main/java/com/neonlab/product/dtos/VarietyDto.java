@@ -19,7 +19,7 @@ public class VarietyDto {
     @NotNull(message = "Variety type is mandatory.")
     private VarietyType type;
     @NotNull(message = "Product value is mandatory.")
-    private Integer value;
+    private String value;
     @NotNull(message = "Product Unit is mandatory.")
     private Units unit;
     @NotEmpty(message = "Product specific description is mandatory.")
