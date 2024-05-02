@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Loggable
 @Service
 public class AddProductApi {
+
     @Autowired
     private ProductService productService;
     @Autowired
@@ -37,6 +38,9 @@ public class AddProductApi {
             validationUtils.validate(product);
         } catch (ConstraintViolationException e) {
             throw new InvalidInputException(e.getMessage());
+        }
+        if (productService.existingProduct(product.getCode())){
+            throw new InvalidInputException("Product already exists with the code "+product.getCode());
         }
     }
 }

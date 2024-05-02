@@ -35,8 +35,8 @@ public class ProductController {
 
     @DeleteMapping("/delete")
    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<?>deleteProduct(@RequestBody ProductDeleteReq productDeleteReq){
-        return deleteProductApi.process(productDeleteReq);
+    public ApiOutput<?>deleteProduct(@RequestBody List<String> productIds){
+        return deleteProductApi.process(productIds);
     }
 
     @PutMapping("/update")

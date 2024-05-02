@@ -40,7 +40,7 @@ public class Product extends Generic {
     @Column(name = "tags")
     private String tags;//not null
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Variety> varieties;
 
     public Product(){
