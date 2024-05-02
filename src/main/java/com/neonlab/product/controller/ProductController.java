@@ -27,28 +27,22 @@ public class ProductController {
     private final UpdateProductApi updateProductApi;
     private final FetchProductApi fetchProductApi;
 
-    @PostMapping("/add")
+    @PostMapping(value = "/add")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<ProductDto> addProduct(
-            @RequestParam("productDetails") String productJson,
-            @RequestParam(value = "files", required = false) List<MultipartFile> files) {
-
-        return addProductApi.createProduct(productJson , files);
+    public ApiOutput<ProductDto> addProduct(@ModelAttribute ProductDto product) {
+        return addProductApi.createProduct(product);
     }
 
     @DeleteMapping("/delete")
    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<?>deleteProduct(@RequestBody ProductDeleteReq productDeleteReq){
-        return deleteProductApi.process(productDeleteReq);
+    public ApiOutput<?>deleteProduct(@RequestBody List<String> productIds){
+        return deleteProductApi.process(productIds);
     }
 
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<ProductDto> updateProduct(
-            @RequestParam("ProductDetails") String productJson,
-            @ModelAttribute List<MultipartFile> files){
-
-        return updateProductApi.updateProduct(productJson , files);
+    public ApiOutput<ProductDto> updateProduct(@ModelAttribute ProductDto product){
+        return updateProductApi.updateProduct(product);
     }
 
     @GetMapping("/list")
