@@ -162,10 +162,41 @@ public class OrderService {
     }
 
 
-    public ApiOutput<?> cancelOrder(String orderId) throws InvalidInputException {
+    public ApiOutput<?> cancelById(String orderId) throws InvalidInputException {
         var order = fetchOrderById(orderId);
         orderRepository.delete(order);
         return new ApiOutput<>(HttpStatus.OK.value(), "Your Order Cancel Successfully",null);
+    }
+
+
+    /**
+     * Checks if an order can be canceled.
+     *
+     * @param createdDate The date the order was created.
+     * @param isOutForDelivery Indicates if the order is currently out for delivery.
+     * @return true if the order can be canceled, false otherwise.
+     */
+    public boolean canOrderCancel(String id) throws InvalidInputException {
+
+        var order = fetchOrderById(id);
+        if (order.getOrderStatus().getOrderStatus().equals("OUT_FOR_DELIVERY")) {
+            return false; // Order cannot be canceled if it's out for delivery.
+        }
+
+        // Get the current date and time
+        Date now = new Date();
+
+        // Calculate the date two days after the order was created
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(order.getCreatedAt());
+        calendar.add(Calendar.DAY_OF_YEAR, 2);
+
+        // Check if the current date/time is after two days from the created date
+        if (now.after(calendar.getTime())) {
+            return false; // More than 2 days old, order can't be canceled.
+        }
+
+        return true; // Order can be canceled if not out for delivery and not older than 2 days.
     }
 
     private Order fetchOrderById(String orderId) throws InvalidInputException {

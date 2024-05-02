@@ -29,18 +29,13 @@ public class SuggestionService {
 
     }
 
-    public List<SuggestionDto> fetch() throws InvalidInputException, ServerException {
+    public List<SuggestionDto> fetchByCreatedBY() throws InvalidInputException, ServerException {
         List<Suggestion> suggestionList = suggestionRepository.findByCreatedByOrderByCreatedAtDesc(getUser().getId())
                 .orElseThrow(()->new ServerException("Currently You have not give me any Suggestion"));
 
-        List<SuggestionDto>suggestionDtoList = new java.util.ArrayList<>();
-        for(var suggestion : suggestionList){
-            var suggestionDto = ObjectMapperUtils.map(suggestion,SuggestionDto.class);
-            suggestionDtoList.add(suggestionDto);
-        }
-
-        return suggestionDtoList;
+        return getSuggestionList(suggestionList);
     }
+
 
     public List<String> delete(List<String> suggestionIds) {
         List<String> message = new ArrayList<>();
@@ -62,5 +57,19 @@ public class SuggestionService {
 
     private User getUser() throws InvalidInputException {
         return userService.getLoggedInUser();
+    }
+
+    public List<SuggestionDto> getAll() throws ServerException {
+        List<Suggestion>suggestionList = suggestionRepository.findAll();
+        return getSuggestionList(suggestionList);
+    }
+
+    private static List<SuggestionDto> getSuggestionList(List<Suggestion> suggestionList) throws ServerException {
+        List<SuggestionDto>suggestionDtoList = new ArrayList<>();
+        for(var suggestion : suggestionList){
+            var suggestionDto = ObjectMapperUtils.map(suggestion,SuggestionDto.class);
+            suggestionDtoList.add(suggestionDto);
+        }
+        return suggestionDtoList;
     }
 }

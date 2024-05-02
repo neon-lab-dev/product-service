@@ -18,7 +18,7 @@ public class CreateOrderApi {
     @Autowired
     private ValidationUtils validationUtils;
 
-    public ApiOutput<?> createOrder(OrderDto orderDto) {
+    public ApiOutput<?> create(OrderDto orderDto) {
         try {
             validationUtils.validation(orderDto,"orderDto");
             return orderService.createOrder(orderDto);

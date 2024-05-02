@@ -14,10 +14,10 @@ public class CancelOrderApi {
     @Autowired
     OrderService orderService;
 
-    public ApiOutput<?> cancelOrder(String orderId) {
+    public ApiOutput<?> cancelById(String orderId) {
         try {
             validate(orderId);
-            return orderService.cancelOrder(orderId);
+            return orderService.cancelById(orderId);
         }catch (InvalidInputException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
@@ -26,6 +26,9 @@ public class CancelOrderApi {
     private void validate(String orderId) throws InvalidInputException {
         if(StringUtil.isNullOrEmpty(orderId)){
             throw new InvalidInputException("Order Id is Mandatory");
+        }
+        if(!orderService.canOrderCancel(orderId)){
+            throw new InvalidInputException("Order Can not be cancel");
         }
     }
 }
