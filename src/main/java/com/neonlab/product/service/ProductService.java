@@ -42,7 +42,7 @@ public class ProductService {
 
     public final static String MESSAGE = "Product unique code already exists or This Product Already Exists";
 
-    public final static String DELETE_MESSAGE = "Product Quantity Reduce Successfully";
+    public final static String DELETE_MESSAGE = "Product deleted successfully.";
 
     public final static String WHOLE_PRODUCT_DELETE_MESSAGE = "Product Deleted Successfully";
 
@@ -173,17 +173,11 @@ public class ProductService {
     }
 
 
-    public String deleteProduct(ProductDeleteReq productDeleteReq) throws  InvalidInputException {
-        /*Product product = fetchProductByCode(productDeleteReq.getCode());
-        if(productDeleteReq.getDeleteProduct()){
-            return deleteWholeProduct(product);
+    public String deleteProduct(List<String> productIds) throws  InvalidInputException {
+        for (var productId : productIds){
+            var product = productRepository.findById(productId);
+            product.ifPresent(value -> productRepository.delete(product.get()));
         }
-        Integer existsQuantity = product.getQuantity();
-        assert productDeleteReq.getQuantity() != null;
-        Integer currentQuantity = existsQuantity - productDeleteReq.getQuantity();
-        product.setQuantity(currentQuantity);
-        productRepository.save(product);
-        log.warn("Now Your Product Quantity is {}", currentQuantity);*/
         return DELETE_MESSAGE;
     }
 
