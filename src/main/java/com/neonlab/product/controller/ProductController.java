@@ -46,7 +46,7 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<ProductDto> updateProduct(
             @RequestParam("ProductDetails") String productJson,
-            @ModelAttribute List<MultipartFile> files){
+            @RequestParam(value = "files",required = false) List<MultipartFile> files){
 
         return updateProductApi.updateProduct(productJson , files);
     }

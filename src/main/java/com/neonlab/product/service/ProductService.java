@@ -1,4 +1,6 @@
 package com.neonlab.product.service;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
@@ -6,7 +8,9 @@ import com.neonlab.common.services.BoundedQueue;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.PageableUtils;
+import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
+import com.neonlab.product.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.models.responses.PageableResponse;
@@ -230,4 +234,14 @@ public class ProductService {
         return retVal;
     }
 
+    public void handleCancelOrder(Order order) throws JsonProcessingException, InvalidInputException {
+        ObjectMapper mapper = new ObjectMapper();
+        BoughtProductDetailsDto[] boughtProductList = mapper.readValue(order.getBoughtProductDetails(), BoughtProductDetailsDto[].class);
+        for(var boughtProducts:boughtProductList) {
+            var product = fetchProductByCode(boughtProducts.getCode());
+            Integer existQty = product.getQuantity();
+            product.setQuantity(existQty+boughtProducts.getQuantity());
+            productRepository.save(product);
+        }
+    }
 }

@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driver: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST_PORT}/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/productDB
+    username: sauravS
+    password: saurav@simmi
   jpa:
     hibernate:
       ddl-auto: update

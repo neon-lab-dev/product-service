@@ -9,11 +9,11 @@ import java.util.Date;
 @Data
 public class SuggestionDto {
 
-    String id;
+    private String id;
 
     @NotEmpty(message = "Comment should not be empty")
-    String comment;
-    Date createdAt;
+    private String comment;
+    private Date createdAt;
     private String createdBy;
     private Date modifiedAt;
     private String modifiedBy;

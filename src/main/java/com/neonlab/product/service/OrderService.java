@@ -1,4 +1,6 @@
 package com.neonlab.product.service;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.ApiOutput;
@@ -161,11 +163,14 @@ public class OrderService {
        return new ApiOutput<>(HttpStatus.OK.value(), "Order Status Change",existOrder.getOrderStatus());
     }
 
+    @Transactional
+    public String cancelById(String orderId) throws InvalidInputException, JsonProcessingException {
 
-    public ApiOutput<?> cancelById(String orderId) throws InvalidInputException {
         var order = fetchOrderById(orderId);
-        orderRepository.delete(order);
-        return new ApiOutput<>(HttpStatus.OK.value(), "Your Order Cancel Successfully",null);
+        productService.handleCancelOrder(order);
+        order.setOrderStatus(OrderStatus.CANCELED);
+        orderRepository.save(order);
+        return "Your Order Cancel Successfully";
     }
 
 

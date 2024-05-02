@@ -1,4 +1,6 @@
 package com.neonlab.product.apis;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.utilities.StringUtil;
@@ -17,8 +19,9 @@ public class CancelOrderApi {
     public ApiOutput<?> cancelById(String orderId) {
         try {
             validate(orderId);
-            return orderService.cancelById(orderId);
-        }catch (InvalidInputException e){
+            String message = orderService.cancelById(orderId);
+            return new ApiOutput<>(HttpStatus.OK.value(), message);
+        }catch (InvalidInputException | JsonProcessingException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }

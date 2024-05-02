@@ -22,25 +22,24 @@ public class SuggestionController {
     private final GetAllSuggestionApi getAllSuggestionApi;
 
     @PostMapping("/create")
-    @PreAuthorize("hashAnyRole('USER')")
     public ApiOutput<SuggestionDto> create(@RequestBody SuggestionDto suggestionDto){
         return suggestionApi.create(suggestionDto);
     }
 
     @GetMapping("all")
-    @PreAuthorize("hashAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> fetchByCreatedBy(){
         return fetchSuggestionApi.fetchByCreatedBy();
     }
 
     @GetMapping("list")
-    @PreAuthorize("hashAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<?> getAll(){
         return getAllSuggestionApi.getAll();
     }
 
     @DeleteMapping("/remove")
-    @PreAuthorize("hashAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> delete(@RequestBody List<String> suggestionId){
         return deleteSuggestionApi.delete(suggestionId);
     }

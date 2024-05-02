@@ -19,20 +19,19 @@ public class OrderController {
     private final CancelOrderApi cancelOrderApi;
 
     @PostMapping("/create")
-    @PreAuthorize("hashAnyRole('USER')")
     public ApiOutput<?> create(@RequestBody OrderDto orderDto) {
         return createOrderApi.create(orderDto);
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hashAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> updateById(@RequestParam(value = "orderId") String orderId,
                                    @RequestParam String orderStatus){
         return updateOrderApi.updateOrder(orderId,orderStatus);
     }
 
-    @DeleteMapping("/delete")
-    @PreAuthorize("hashAnyRole('USER', 'ADMIN')")
+    @DeleteMapping("/cancel")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> cancelById(@RequestParam(value = "orderId") String orderId){
         return cancelOrderApi.cancelById(orderId);
     }

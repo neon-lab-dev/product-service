@@ -7,10 +7,13 @@ import lombok.Getter;
 
 @Getter
 public enum OrderStatus {
+
     PROCESSING("Processing"),
     PACKAGING("Packaging"),
     OUT_FOR_DELIVERY("Out for Delivery"),
-    DELIVERED("Delivered");
+    DELIVERED("Delivered"),
+    CANCELED("Canceled");
+
     public final String orderStatus;
     OrderStatus(String orderStatus) {
         this.orderStatus = orderStatus;
