@@ -52,6 +52,8 @@ public class Order extends Generic {
     @Column(name = "total_cost", nullable = false)
     private BigDecimal totalCost;
 
+    private String remark;
+
     @ManyToOne
     @JoinColumn(name ="user_id")
     private User user;

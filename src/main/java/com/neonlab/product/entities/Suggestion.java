@@ -17,6 +17,6 @@ public class Suggestion extends Generic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Column(name = "comment",nullable = false)
+    @Column(name = "comment", nullable = false)
     private String comment;
 }
