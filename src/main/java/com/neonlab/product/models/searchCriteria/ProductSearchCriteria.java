@@ -1,6 +1,7 @@
 package com.neonlab.product.models.searchCriteria;
 
 import com.neonlab.common.models.searchCriteria.PageableSearchCriteria;
+import com.neonlab.product.enums.VarietyType;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,6 +41,21 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
     private String code;
 
     /**
+     * filter by varietyType
+     */
+    private VarietyType varietyType;
+
+    /**
+     * filter by varietyValue
+     */
+    private String value;
+
+    /**
+     * filter by varietyValue
+     */
+    private String varietyDescription;
+
+    /**
      * filter by product minimum price
      */
     private BigDecimal minimumPrice;
@@ -56,6 +72,8 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
             final String subCategory,
             final String brand,
             final String code,
+            final VarietyType varietyType,
+            final String value,
             final BigDecimal minimumPrice,
             final BigDecimal maximumPrice,
             final int perPage,
@@ -69,6 +87,8 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
         this.subCategory = subCategory;
         this.brand = brand;
         this.code = code;
+        this.varietyType = varietyType;
+        this.value = value;
         this.minimumPrice = minimumPrice;
         this.maximumPrice = maximumPrice;
     }

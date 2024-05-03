@@ -38,7 +38,7 @@ public class Product extends Generic {
     @Column(name = "code",nullable = false,unique = true)
     private String code;
     @Column(name = "price",nullable = false)
-    private BigDecimal price =  BigDecimal.valueOf(0.0);
+    private BigDecimal price =  BigDecimal.ZERO;
     @Column(name = "discount_percent")
     private BigDecimal discountPercent = BigDecimal.ZERO;//not null
     @Enumerated(EnumType.STRING)
@@ -49,6 +49,9 @@ public class Product extends Generic {
     private Integer quantity;
     @Column(name = "tags",nullable = false)
     private String tags;//not null
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<Variety> varieties;
 
     public Product(){
         super();

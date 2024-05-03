@@ -145,11 +145,12 @@ public class OrderService {
     }
 
     private Boolean reduceProductQuantity(Integer qty, String code) throws InvalidInputException, ServerException {
-        var productDeleteReq = new ProductDeleteReq();
+        /*var productDeleteReq = new ProductDeleteReq();
         productDeleteReq.setQuantity(qty);
         productDeleteReq.setCode(code);
         deleteProductApi.validate(productDeleteReq);
-        return Optional.ofNullable((Boolean) deleteProductApi.process(productDeleteReq).getResponseBody()).orElse(false);
+        return Optional.ofNullable((Boolean) deleteProductApi.process(productDeleteReq).getResponseBody()).orElse(false);*/
+        return true;
     }
 
     private BigDecimal getDeliveryCharge(){
