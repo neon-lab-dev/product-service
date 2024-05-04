@@ -22,6 +22,7 @@ public class SuggestionController {
     private final GetAllSuggestionApi getAllSuggestionApi;
 
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<SuggestionDto> create(@RequestBody SuggestionDto suggestionDto){
         return suggestionApi.create(suggestionDto);
     }

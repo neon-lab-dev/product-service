@@ -1,11 +1,8 @@
 package com.neonlab.product.entities;
-import com.neonlab.common.entities.Document;
 import com.neonlab.common.entities.Generic;
-import com.neonlab.product.enums.Units;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -29,25 +26,15 @@ public class Product extends Generic {
     private String name;
     @Column(name = "category",nullable = false)
     private String category;
+    @Column(name = "code",nullable = false)
+    private String code;
     @Column(name = "sub_category",nullable = false)
     private String subCategory;
     @Column(name = "description",nullable = false)
     private String description;
     @Column(name = "brand")
     private String brand;
-    @Column(name = "code",nullable = false,unique = true)
-    private String code;
-    @Column(name = "price",nullable = false)
-    private BigDecimal price =  BigDecimal.ZERO;
-    @Column(name = "discount_percent")
-    private BigDecimal discountPercent = BigDecimal.ZERO;//not null
-    @Enumerated(EnumType.STRING)
-    private Units units;
-    @Column(name = "variety",nullable = false)
-    private String variety;
-    @Column(name = "quantity",nullable = false)
-    private Integer quantity;
-    @Column(name = "tags",nullable = false)
+    @Column(name = "tags")
     private String tags;//not null
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
@@ -56,5 +43,4 @@ public class Product extends Generic {
     public Product(){
         super();
     }
-
 }

@@ -184,23 +184,13 @@ public class OrderService {
 
         var order = fetchOrderById(id);
         if (order.getOrderStatus().getOrderStatus().equals("OUT_FOR_DELIVERY")) {
-            return false; // Order cannot be canceled if it's out for delivery.
+            return false;
         }
-
-        // Get the current date and time
         Date now = new Date();
-
-        // Calculate the date two days after the order was created
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(order.getCreatedAt());
         calendar.add(Calendar.DAY_OF_YEAR, 2);
-
-        // Check if the current date/time is after two days from the created date
-        if (now.after(calendar.getTime())) {
-            return false; // More than 2 days old, order can't be canceled.
-        }
-
-        return true; // Order can be canceled if not out for delivery and not older than 2 days.
+        return !now.after(calendar.getTime());
     }
 
     private Order fetchOrderById(String orderId) throws InvalidInputException {

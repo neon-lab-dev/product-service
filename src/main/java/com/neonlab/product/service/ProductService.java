@@ -148,6 +148,8 @@ public class ProductService {
         }
     }
 
+    /*
+
     @Transactional
     private List<Document> enforceDocumentLimitForProduct(List<String> documentId , VarietyDto variety) throws InvalidInputException {
         var boundedQueue = new BoundedQueue<String>(4);
@@ -173,6 +175,8 @@ public class ProductService {
         return documentService.fetchByDocIdentifierAndEntityName(existProduct.getId(),
                 existProduct.getClass().getSimpleName());
     }
+
+     */
 
     private void mapDocument(Product product, List<Document> documents) {
         for(var document : documents) {
@@ -250,11 +254,12 @@ public class ProductService {
         BoughtProductDetailsDto[] boughtProductList = mapper.readValue(order.getBoughtProductDetails(), BoughtProductDetailsDto[].class);
         for(var boughtProducts:boughtProductList) {
             var product = fetchProductByCode(boughtProducts.getCode());
-            Integer existQty = product.getQuantity();
-            product.setQuantity(existQty+boughtProducts.getQuantity());
+//            Integer existQty = product.getQantity();
+//            product.setQuantity(existQty+boughtProducts.getQuantity());
             productRepository.save(product);
         }
     }
+
     private Product fetchById(String id) throws InvalidInputException {
         var retVal = productRepository.findById(id);
         if (retVal.isPresent()){
@@ -262,5 +267,4 @@ public class ProductService {
         }
         throw new InvalidInputException("Product not found with Id "+id);
     }
-
 }
