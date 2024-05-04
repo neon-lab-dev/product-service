@@ -3,9 +3,10 @@ package com.neonlab.product.apis;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
+import com.neonlab.common.utilities.ValidationUtils;
+import com.neonlab.common.validationGroups.UpdateValidationGroup;
 import com.neonlab.product.dtos.DriverDto;
 import com.neonlab.product.service.DriverService;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,13 @@ public class UpdateDriverApi {
     @Autowired
     private DriverService driverService;
 
-    public ApiOutput<DriverDto> updateDriver(DriverDto driverDto){
+    @Autowired
+    private ValidationUtils validationUtils;
+
+    public ApiOutput<DriverDto> process(DriverDto driverDto){
         try{
             validate(driverDto);
-            DriverDto response=driverService.updateDriver(driverDto);
+            DriverDto response=driverService.update(driverDto);
             return new ApiOutput<>(HttpStatus.OK.value(), UPDATE_MESSAGE,response);
         } catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -34,9 +38,8 @@ public class UpdateDriverApi {
         if(Objects.isNull(driverDto)){
             throw new InvalidInputException("Please provide something to update");
         }
-        if(Strings.isEmpty(driverDto.getId())){
-            throw new InvalidInputException("You need to provide id to update the driver");
-        }
+        validationUtils.validate(driverDto, UpdateValidationGroup.class);
+        driverService.fetchById(driverDto.getId());
     }
 
 }

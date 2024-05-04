@@ -6,9 +6,10 @@ import com.neonlab.product.entities.Driver;
 import com.neonlab.product.models.searchCriteria.DriverSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Objects;
+
 import static com.neonlab.common.constants.GlobalConstants.Symbols.PERCENTAGE;
 import static com.neonlab.product.constants.DriverEntityConstant.*;
-import static com.neonlab.product.constants.ProductEntityConstant.NAME;
 
 public class DriverSpecifications {
     public static Specification<Driver> buildSearchCriteria(final DriverSearchCriteria searchCriteria){
@@ -17,19 +18,14 @@ public class DriverSpecifications {
             retVal=retVal.and(filterByNameLike(searchCriteria.getName()));
         }
         if(!StringUtil.isNullOrEmpty(searchCriteria.getContactNo())){
-            retVal=retVal.and(filterByContactNoLike(searchCriteria.getContactNo()));
+            retVal=retVal.and(filterByContactNo(searchCriteria.getContactNo()));
         }
         if(!StringUtil.isNullOrEmpty(searchCriteria.getVehicleNo())){
-            retVal=retVal.and(filterByContactNoLike(searchCriteria.getVehicleNo()));
+            retVal=retVal.and(filterByVehicleLike(searchCriteria.getVehicleNo()));
         }
-        if(searchCriteria.getAvailable()){
-            retVal=retVal.and(filterByAvailableLike()
-            );
+        if(Objects.nonNull(searchCriteria.getAvailable())){
+            retVal=retVal.and(filterByAvailableLike(searchCriteria.getAvailable()));
         }
-//        if(!searchCriteria.getAvailable()){
-//            retVal=retVal.and(filterByAvailableLike(searchCriteria.getAvailable())
-//            );
-//        }
         return retVal;
     }
 
@@ -38,26 +34,29 @@ public class DriverSpecifications {
                 criteriaBuilder.like(root.get(NAME), withLikePattern(name))
         );
     }
-    private static Specification<Driver> filterByContactNoLike(final String contactNo){
+    private static Specification<Driver> filterByContactNo(final String contactNo){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get(CONTACTNO), withLikePattern(contactNo))
+                criteriaBuilder.equal(root.get(CONTACT), contactNo)
         );
     }
     private static Specification<Driver> filterByVehicleLike(final String vehicleNo){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.like(root.get(VEHICLENO), withLikePatternStartWith(vehicleNo))
+                criteriaBuilder.like(root.get(VEHICLE), withLikePattern(vehicleNo))
         );
     }
-    private static Specification<Driver> filterByAvailableLike(){
+    private static Specification<Driver> filterByAvailableLike(final boolean available){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.isTrue(root.get(AVAILABLE))
+        {
+            if (available){
+                return criteriaBuilder.isTrue(root.get(AVAILABLE));
+            } else {
+                return criteriaBuilder.isFalse(root.get(AVAILABLE));
+            }
+        }
         );
     }
 
     private static String withLikePattern(String str){
         return PERCENTAGE + str + PERCENTAGE;
-    }
-    private static String withLikePatternStartWith(String str){
-        return str + PERCENTAGE;
     }
 }

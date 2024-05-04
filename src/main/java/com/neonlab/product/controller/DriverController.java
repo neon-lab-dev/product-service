@@ -50,11 +50,12 @@ public class DriverController {
     @PostMapping("/update")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ApiOutput<DriverDto> updateDriver(@RequestBody DriverDto driverDto){
-        return updateDriverApi.updateDriver(driverDto);
+        return updateDriverApi.process(driverDto);
     }
 
     @GetMapping("/list")
-    public ApiOutput<?> fetchDriver(@RequestBody DriverSearchCriteria searchCriteria){
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ApiOutput<?> fetchDriver(final DriverSearchCriteria searchCriteria){
         return fetchDriverApi.fetchDriver(searchCriteria);
     }
 }

@@ -21,14 +21,13 @@ public class DeleteDriverApi {
 
         try {
             validate(ids);
-            String msg= driverService.deleteDriver(ids);
+            String msg= driverService.delete(ids);
                 return new ApiOutput<>(HttpStatus.OK.value(), msg);
         }catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
     private void validate(List<String> ids) throws InvalidInputException{
-
         if(ids.isEmpty()){
             throw new InvalidInputException("Driver id is not provided.");
         }

@@ -3,18 +3,15 @@ package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
-import com.neonlab.common.models.searchCriteria.PageableSearchCriteria;
+import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.DriverDto;
-import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.entities.Driver;
-import com.neonlab.product.entities.Product;
 import com.neonlab.product.models.responses.PageableResponse;
 import com.neonlab.product.models.searchCriteria.DriverSearchCriteria;
 import com.neonlab.product.repository.DriverRepository;
 import com.neonlab.product.repository.specifications.DriverSpecifications;
-import com.neonlab.product.repository.specifications.ProductSpecifications;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,37 +29,29 @@ public class DriverService {
     public final static String DELETE_MESSAGE = "Driver has been deleted.";
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private DriverRepository driverRepository;
 
-    public DriverDto addDriver(DriverDto driverDto) throws ServerException {
+    public DriverDto add(DriverDto driverDto) throws ServerException, InvalidInputException {
         Driver newDriver=new Driver(driverDto);
+        var loggedInUser = userService.getLoggedInUser();
+        newDriver.setCreatedBy(loggedInUser.getPrimaryPhoneNo());
         Driver driver=driverRepository.save(newDriver);
-        DriverDto response=new DriverDto(driver.getId(), driver.getName(), driver.getContactNo(), driver.getVehicleNo(), driver.isAvailable());
-        return response;
+        return ObjectMapperUtils.map(driver, DriverDto.class);
     }
-    public String deleteDriver(List<String> ids) throws ServerException{
+
+    public String delete(List<String> ids) {
         driverRepository.deleteAllById(ids);
         return DELETE_MESSAGE;
     }
 
-    public DriverDto updateDriver(DriverDto driverDto) throws ServerException, InvalidInputException {
-        Optional<Driver> optionalDriver=driverRepository.findById(driverDto.getId());
-        if(optionalDriver.isEmpty()){
-            throw new InvalidInputException("invalid driver id");
-        }
-        Driver driver=optionalDriver.get();
-        if(driverDto.getName()!=null){
-            driver.setName(driverDto.getName());
-        }
-        if(driverDto.getContactNo()!=null){
-            driver.setContactNo(driverDto.getContactNo());
-        }
-        if(driverDto.getVehicleNo()!=null){
-            driver.setVehicleNo(driverDto.getVehicleNo());
-        }
-        Driver updatedDriver=driverRepository.save(driver);
-        DriverDto response=new DriverDto(updatedDriver.getId(),updatedDriver.getName(),updatedDriver.getContactNo(),updatedDriver.getVehicleNo(), updatedDriver.isAvailable());
-        return response;
+    public DriverDto update(DriverDto driverDto) throws ServerException, InvalidInputException {
+        var driver = fetchById(driverDto.getId());
+        ObjectMapperUtils.map(driverDto, driver);
+        driver = driverRepository.save(driver);
+        return ObjectMapperUtils.map(driver, DriverDto.class);
     }
 
     public PageableResponse<DriverDto> fetchDriver(final DriverSearchCriteria searchCriteria){
@@ -78,6 +67,7 @@ public class DriverService {
         return new PageableResponse<>(reslutList, searchCriteria);
 
     }
+    
     private static DriverDto getDriverDto(Driver driver) {
         DriverDto retVal = null;
         try{
@@ -85,4 +75,18 @@ public class DriverService {
         } catch (ServerException ignored){}
         return retVal;
     }
+
+    public Driver fetchById(String id) throws InvalidInputException {
+        return driverRepository.findById(id)
+                .orElseThrow(() -> new InvalidInputException("Driver not found with id "+id));
+    }
+
+    public Optional<Driver> getByContactNo(String contactNo){
+        return driverRepository.findByContactNo(contactNo);
+    }
+
+    public Optional<Driver> getByVehicleNo(String vehicleNo){
+        return driverRepository.findByVehicleNo(vehicleNo);
+    }
+
 }
