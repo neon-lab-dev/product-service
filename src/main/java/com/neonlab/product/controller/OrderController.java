@@ -19,6 +19,7 @@ public class OrderController {
     private final CancelOrderApi cancelOrderApi;
 
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> create(@RequestBody OrderDto orderDto) {
         return createOrderApi.create(orderDto);
     }
