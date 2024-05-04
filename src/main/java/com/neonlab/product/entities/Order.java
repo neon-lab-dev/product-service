@@ -34,7 +34,7 @@ public class Order extends Generic {
     @Column(name = "address_id", nullable = false)
     private String addressId;
 
-    @Column(name = "bought_product_details", columnDefinition = "json", nullable = false)
+    @Column(name = "bought_product_details", columnDefinition = "JSON", nullable = false)
     private String boughtProductDetails;
 
     @Enumerated(EnumType.STRING)
@@ -51,6 +51,8 @@ public class Order extends Generic {
 
     @Column(name = "total_cost", nullable = false)
     private BigDecimal totalCost;
+
+    private String remark;
 
     @ManyToOne
     @JoinColumn(name ="user_id")
