@@ -22,7 +22,7 @@ public class SuggestionApi {
     public ApiOutput<SuggestionDto> create(SuggestionDto suggestionDto) {
         try {
             validationUtils.validate(suggestionDto);
-            return new ApiOutput<>(HttpStatus.OK.value(),"Thank Your for giving me suggestion" ,suggestionService.create(suggestionDto));
+            return new ApiOutput<>(HttpStatus.OK.value(),"Thank Your for your suggestion" ,suggestionService.create(suggestionDto));
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
