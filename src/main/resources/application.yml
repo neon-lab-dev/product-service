@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driver: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST_PORT}/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/driverdb
+    username: root
+    password: Snd@1142000
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,3 +17,5 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
+
+
