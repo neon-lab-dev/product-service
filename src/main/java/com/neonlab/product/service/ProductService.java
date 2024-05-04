@@ -127,12 +127,14 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto update(ProductDto product) throws ServerException, InvalidInputException, IOException {
-       var productEntity = ObjectMapperUtils.map(product, Product.class);
+    public ProductDto update(ProductDto product) throws ServerException, InvalidInputException {
+       var productEntity = fetchById(product.getId());
+       ObjectMapperUtils.map(product, productEntity);
        productEntity = productRepository.save(productEntity);
        var varieties = new ArrayList<VarietyDto>();
        for (var dto : product.getVarieties()){
-           var varietyEntity = ObjectMapperUtils.map(dto, Variety.class);
+           var varietyEntity = fetchVarietyById(dto.getId());
+           ObjectMapperUtils.map(dto, varietyEntity);
            varietyEntity = varietyRepository.save(varietyEntity);
            updateDocumentIfRequired(dto, varietyEntity);
            varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
@@ -267,4 +269,10 @@ public class ProductService {
         }
         throw new InvalidInputException("Product not found with Id "+id);
     }
+
+    public Variety fetchVarietyById(String id) throws InvalidInputException {
+        return varietyRepository.findById(id)
+                .orElseThrow(() -> new InvalidInputException("Variety not found with id "+id));
+    }
+
 }

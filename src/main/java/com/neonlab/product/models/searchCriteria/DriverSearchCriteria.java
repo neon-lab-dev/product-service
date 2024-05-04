@@ -12,14 +12,23 @@ import org.springframework.data.domain.Sort.Direction;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class DriverSearchCriteria extends PageableSearchCriteria {
-    //filter by driver name
+    /**
+     * filter by driver name
+     */
     private String name;
-    //filter by driver contactNo
+    /**
+     * filter by driver contactNo
+     */
     private String contactNo;
-    //filter by driver vehicleNo
+    /**
+     * filter by driver vehicleNo
+     */
     private String vehicleNo;
-    //filter by driver's availability
+    /**
+     * filter by driver's availability
+     */
     private Boolean available;
+
     @Builder(builderMethodName = "driverSearchCriteriaBuilder")
     public DriverSearchCriteria(
             final String name,
