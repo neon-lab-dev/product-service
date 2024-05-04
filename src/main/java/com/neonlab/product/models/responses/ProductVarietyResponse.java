@@ -25,7 +25,9 @@ public class ProductVarietyResponse {
     private Units unit;
     private String varietyDescription;
     private BigDecimal price;
+    private BigDecimal discountPercent;
     private BigDecimal discountedPrice;
+    private BigDecimal deliveryCharges;
     private Integer quantity;
     private List<String> documents;
 
@@ -33,7 +35,8 @@ public class ProductVarietyResponse {
     public ProductVarietyResponse(
             final Product product,
             final Variety variety,
-            final List<String> documents
+            final List<String> documents,
+            final BigDecimal deliveryCharges
             ){
         this.name = product.getName();
         this.code = product.getCode();
@@ -46,7 +49,9 @@ public class ProductVarietyResponse {
         this.unit = variety.getUnit();
         this.varietyDescription = variety.getDescription();
         this.price = variety.getPrice();
+        this.discountPercent = variety.getDiscountPercent();
         this.discountedPrice = MathUtils.getDiscountedPrice(this.price, variety.getDiscountPercent());
+        this.deliveryCharges = deliveryCharges;
         this.quantity = variety.getQuantity();
         this.documents = documents;
     }

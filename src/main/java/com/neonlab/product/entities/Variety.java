@@ -1,6 +1,8 @@
 package com.neonlab.product.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.neonlab.common.entities.Generic;
+import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.product.enums.Units;
 import com.neonlab.product.enums.VarietyType;
 import jakarta.persistence.*;
@@ -42,6 +44,12 @@ public class Variety extends Generic {
     private Integer quantity;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore
     private Product product;
+
+    @Override
+    public String toString(){
+        return JsonUtils.jsonOf(this);
+    }
 
 }

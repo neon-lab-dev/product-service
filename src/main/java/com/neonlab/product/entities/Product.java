@@ -1,5 +1,7 @@
 package com.neonlab.product.entities;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.neonlab.common.entities.Generic;
+import com.neonlab.common.utilities.JsonUtils;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,9 +40,16 @@ public class Product extends Generic {
     private String tags;//not null
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Variety> varieties;
 
     public Product(){
         super();
     }
+
+    @Override
+    public String toString(){
+        return JsonUtils.jsonOf(this);
+    }
+
 }

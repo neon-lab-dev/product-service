@@ -1,5 +1,4 @@
 package com.neonlab.product.dtos;
-import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
@@ -12,15 +11,13 @@ import java.util.List;
 @Data
 public class BoughtProductDetailsDto {
 
-    @NotEmpty(message = "Product code should not be empty")
-    private String code;
-
+    @NotEmpty(message = "Product variety Id is mandatory.")
+    private String varietyId;
     private String name;
     private BigDecimal price;
-
+    private BigDecimal discountPercent;
+    private BigDecimal discountedPrice;
     @Min(value = 1, message = "Quantity must be at least 1")
-    private Integer quantity;
-
-    private String variety;
-    private List<String> documentsId = new ArrayList<>();
+    private Integer boughtQuantity;
+    private List<String> documents = new ArrayList<>();
 }
