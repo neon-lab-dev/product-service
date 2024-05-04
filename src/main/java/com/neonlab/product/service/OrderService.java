@@ -1,5 +1,4 @@
 package com.neonlab.product.service;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.AddressDto;
@@ -20,7 +19,6 @@ import com.neonlab.product.dtos.*;
 import com.neonlab.product.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.enums.OrderStatus;
-import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

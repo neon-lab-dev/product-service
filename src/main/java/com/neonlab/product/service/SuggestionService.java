@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 @Service
 public class SuggestionService {
 
@@ -22,11 +23,10 @@ public class SuggestionService {
     private UserService userService;
 
     public SuggestionDto create(SuggestionDto suggestionDto) throws ServerException, InvalidInputException {
-        var suggestion = ObjectMapperUtils.map(suggestionDto, Suggestion.class);
+        var suggestion = ObjectMapperUtils.map(suggestionDto,Suggestion.class);
         suggestion.setCreatedBy(getUser().getId());
-        suggestion = suggestionRepository.save(suggestion);
-        return ObjectMapperUtils.map(suggestion,SuggestionDto.class);
-
+        var suggestions = suggestionRepository.save(suggestion);
+        return ObjectMapperUtils.map(suggestions,SuggestionDto.class);
     }
 
     public List<SuggestionDto> fetchByCreatedBY() throws InvalidInputException, ServerException {

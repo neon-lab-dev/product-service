@@ -149,14 +149,16 @@ public class ProductService {
     }
 
     @Transactional
-    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , Product existProduct) throws InvalidInputException {
+    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , VarietyDto variety) throws InvalidInputException {
         var boundedQueue = new BoundedQueue<String>(4);
+
         List<Document> documentList =
                 documentService.fetchByDocIdentifierAndEntityName(
-                        existProduct.getId(), existProduct.getClass().getSimpleName());
+                        variety.getId(), variety.getClass().getSimpleName());
         for(Document document : documentList){
             boundedQueue.add(document.getId());
         }
+
         var documents = new ArrayList<Document>();
         for(String id : documentId){
             var document = documentService.fetchById(id);
@@ -167,7 +169,7 @@ public class ProductService {
                 documentService.delete(oldDocument);
             }
         }
-        mapDocument(existProduct , documents);
+        mapDocument( , documents);
         return documentService.fetchByDocIdentifierAndEntityName(existProduct.getId(),
                 existProduct.getClass().getSimpleName());
     }

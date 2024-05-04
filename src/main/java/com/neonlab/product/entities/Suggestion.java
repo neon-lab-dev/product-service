@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class Suggestion extends Generic {
+    public Suggestion(String createdBy, String modifiedBy){
+        super(createdBy, modifiedBy);
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
