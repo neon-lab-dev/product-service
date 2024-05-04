@@ -1,4 +1,5 @@
 package com.neonlab.product.service;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.ApiOutput;
@@ -18,7 +19,6 @@ import com.neonlab.product.dtos.*;
 import com.neonlab.product.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.enums.OrderStatus;
-import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +138,7 @@ public class OrderService {
         order.setDeliveryCharges(getDeliveryCharge());
         order.setOrderStatus(OrderStatus.PROCESSING);
         order.setDriverId(null);
-        order.setCreatedBy(userService.getLoggedInUser().getId());
+        order.setCreatedBy(getUser().getId());
         return orderRepository.save(order);
     }
 
@@ -162,11 +162,35 @@ public class OrderService {
        return new ApiOutput<>(HttpStatus.OK.value(), "Order Status Change",existOrder.getOrderStatus());
     }
 
+    @Transactional
+    public String cancelById(String orderId) throws InvalidInputException, JsonProcessingException {
 
-    public ApiOutput<?> cancelOrder(String orderId) throws InvalidInputException {
         var order = fetchOrderById(orderId);
-        orderRepository.delete(order);
-        return new ApiOutput<>(HttpStatus.OK.value(), "Your Order Cancel Successfully",null);
+        productService.handleCancelOrder(order);
+        order.setOrderStatus(OrderStatus.CANCELED);
+        orderRepository.save(order);
+        return "Your Order Cancel Successfully";
+    }
+
+
+    /**
+     * Checks if an order can be canceled.
+     *
+     * @param createdDate The date the order was created.
+     * @param isOutForDelivery Indicates if the order is currently out for delivery.
+     * @return true if the order can be canceled, false otherwise.
+     */
+    public boolean canOrderCancel(String id) throws InvalidInputException {
+
+        var order = fetchOrderById(id);
+        if (order.getOrderStatus().getOrderStatus().equals("OUT_FOR_DELIVERY")) {
+            return false;
+        }
+        Date now = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(order.getCreatedAt());
+        calendar.add(Calendar.DAY_OF_YEAR, 2);
+        return !now.after(calendar.getTime());
     }
 
     private Order fetchOrderById(String orderId) throws InvalidInputException {

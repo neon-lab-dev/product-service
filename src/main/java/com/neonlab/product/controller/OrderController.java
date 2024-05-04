@@ -5,6 +5,7 @@ import com.neonlab.product.apis.CreateOrderApi;
 import com.neonlab.product.apis.UpdateOrderApi;
 import com.neonlab.product.dtos.OrderDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -18,18 +19,20 @@ public class OrderController {
     private final CancelOrderApi cancelOrderApi;
 
     @PostMapping("/create")
-    public ApiOutput<?> createOrder(@RequestBody OrderDto orderDto) {
-        return createOrderApi.createOrder(orderDto);
+    public ApiOutput<?> create(@RequestBody OrderDto orderDto) {
+        return createOrderApi.create(orderDto);
     }
 
     @PutMapping("/update")
-    public ApiOutput<?> updateOrder(@RequestParam(value = "orderId") String orderId,
-                                    @RequestParam String orderStatus){
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ApiOutput<?> updateById(@RequestParam(value = "orderId") String orderId,
+                                   @RequestParam String orderStatus){
         return updateOrderApi.updateOrder(orderId,orderStatus);
     }
 
-    @DeleteMapping("/delete")
-    public ApiOutput<?> cancelOrder(@RequestParam(value = "orderId") String orderId){
-        return cancelOrderApi.cancelOrder(orderId);
+    @DeleteMapping("/cancel")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ApiOutput<?> cancelById(@RequestParam(value = "orderId") String orderId){
+        return cancelOrderApi.cancelById(orderId);
     }
 }
