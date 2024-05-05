@@ -1,27 +1,31 @@
 package com.neonlab.product.apis;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.utilities.StringUtil;
+import com.neonlab.product.dtos.OrderDto;
+import com.neonlab.product.models.requests.UpdateOrderRequest;
 import com.neonlab.product.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 
 
 @Service
+@Loggable
+@RequiredArgsConstructor
 public class CancelOrderApi {
-    @Autowired
-    OrderService orderService;
 
-    public ApiOutput<?> cancelById(String orderId) {
+    private final OrderService orderService;
+    private final UpdateOrderApi updateOrderApi;
+
+    public ApiOutput<OrderDto> process(String orderId) {
         try {
             validate(orderId);
-            String message = orderService.cancelById(orderId);
-            return new ApiOutput<>(HttpStatus.OK.value(), message);
-        }catch (InvalidInputException | JsonProcessingException e){
+            var updateOrderRequest = UpdateOrderRequest.getCancelOrderRequest(orderId);
+            return new ApiOutput<>(HttpStatus.OK.value(), null, updateOrderApi.process(updateOrderRequest).getResponseBody());
+        }catch (InvalidInputException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }

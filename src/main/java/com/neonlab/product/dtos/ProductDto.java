@@ -1,13 +1,9 @@
 package com.neonlab.product.dtos;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.neonlab.common.validationGroups.UpdateValidationGroup;
-import com.neonlab.product.enums.Units;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -28,6 +24,5 @@ public class ProductDto {
     @NotEmpty(message = "Product description is mandatory.")
     private String description;
     private String brand;
-    @Valid
-    private List<VarietyDto> varieties;
+    private List<VarietyDto> varietyList;
 }

@@ -6,12 +6,11 @@ import com.neonlab.product.apis.FetchProductApi;
 import com.neonlab.product.apis.UpdateProductApi;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.apis.AddProductApi;
-import com.neonlab.product.models.ProductDeleteReq;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 
