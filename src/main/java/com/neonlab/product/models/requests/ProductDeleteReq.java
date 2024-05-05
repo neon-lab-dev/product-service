@@ -1,4 +1,4 @@
-package com.neonlab.product.models;
+package com.neonlab.product.models.requests;
 import lombok.Data;
 
 
