@@ -51,6 +51,8 @@ public class ProductService {
 
     public final static String WHOLE_PRODUCT_DELETE_MESSAGE = "Product Deleted Successfully";
 
+    public final static Integer MAX_DOCUMENT_LIMIT_SIZE = 4;
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -107,6 +109,16 @@ public class ProductService {
             document.setEntityName(variety.getClass().getSimpleName());
             documentService.save(document);
         }
+
+        List<Document>documentList = documentService.fetchByDocIdentifierAndEntityName(variety.getId(),variety.getClass().getSimpleName());
+        if(documentList.size()>MAX_DOCUMENT_LIMIT_SIZE){
+            int excess = documentList.size() - MAX_DOCUMENT_LIMIT_SIZE;
+            for (int i = 0; i < excess; i++) {
+                Document document = documentList.get(i);
+                documentService.delete(document);
+            }
+        }
+
     }
 
     private Variety saveVariety(VarietyDto varietyDto, Product product) throws ServerException, InvalidInputException {
@@ -142,6 +154,7 @@ public class ProductService {
        return retVal;
     }
 
+    @Transactional
     private void updateDocumentIfRequired(VarietyDto varietyDto, Variety variety) throws ServerException {
         if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
             saveAndMapDocument(varietyDto, variety);
@@ -149,7 +162,6 @@ public class ProductService {
     }
 
     /*
-
     @Transactional
     private List<Document> enforceDocumentLimitForProduct(List<String> documentId , VarietyDto variety) throws InvalidInputException {
         var boundedQueue = new BoundedQueue<String>(4);
@@ -171,12 +183,13 @@ public class ProductService {
                 documentService.delete(oldDocument);
             }
         }
-        mapDocument( , documents);
+        mapDocument(variety , documents);
         return documentService.fetchByDocIdentifierAndEntityName(existProduct.getId(),
                 existProduct.getClass().getSimpleName());
     }
 
      */
+
 
     private void mapDocument(Product product, List<Document> documents) {
         for(var document : documents) {
@@ -254,8 +267,11 @@ public class ProductService {
         BoughtProductDetailsDto[] boughtProductList = mapper.readValue(order.getBoughtProductDetails(), BoughtProductDetailsDto[].class);
         for(var boughtProducts:boughtProductList) {
             var product = fetchProductByCode(boughtProducts.getCode());
-//            Integer existQty = product.getQantity();
-//            product.setQuantity(existQty+boughtProducts.getQuantity());
+            var varietyList = product.getVarieties();
+            for(var variety : varietyList){
+                Integer existQty = variety.getQuantity();
+                variety.setQuantity(existQty+boughtProducts.getQuantity());
+            }
             productRepository.save(product);
         }
     }
