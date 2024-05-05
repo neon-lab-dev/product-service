@@ -138,7 +138,7 @@ public class OrderService {
         AuthenticationRequest request = new AuthenticationRequest();
         var order = new Order(request.getPhone(),request.getPhone());
         var user = getUser();
-        //order.setUser(user);
+        order.setUserId(user.getId());
         order.setAddressId(address.getId());
         order.setPaymentId(paymentId);
         String boughtProductDetails = JsonUtils.jsonOf(boughtProductDetailsDto);

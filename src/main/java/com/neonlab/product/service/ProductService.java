@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.config.ConfigurationKeys;
 import com.neonlab.common.entities.Document;
+import com.neonlab.common.entities.Order;
 import com.neonlab.common.expectations.*;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.SystemConfigService;
@@ -12,7 +13,6 @@ import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
-import com.neonlab.common.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
 import com.neonlab.product.models.responses.PageableResponse;
@@ -55,11 +55,6 @@ public class ProductService {
 
     public final static Integer MAX_DOCUMENT_LIMIT_SIZE = 4;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private DocumentService documentService;
 
     private final ProductRepository productRepository;
     private final DocumentService documentService;
@@ -279,15 +274,16 @@ public class ProductService {
         ObjectMapper mapper = new ObjectMapper();
         BoughtProductDetailsDto[] boughtProductList = mapper.readValue(order.getBoughtProductDetails(), BoughtProductDetailsDto[].class);
         for(var boughtProducts:boughtProductList) {
-            var product = fetchProductByCode(boughtProducts.getCode());
+            var product = fetchVarietyById(boughtProducts.getVarietyId()).getProduct();
             var varietyList = product.getVarieties();
             for(var variety : varietyList){
                 Integer existQty = variety.getQuantity();
-                variety.setQuantity(existQty+boughtProducts.getQuantity());
+                variety.setQuantity(existQty+boughtProducts.getBoughtQuantity());
             }
             productRepository.save(product);
         }
     }
+
 
     private Product fetchById(String id) throws InvalidInputException {
         var retVal = productRepository.findById(id);
