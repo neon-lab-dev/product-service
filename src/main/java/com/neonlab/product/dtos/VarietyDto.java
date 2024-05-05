@@ -1,5 +1,6 @@
 package com.neonlab.product.dtos;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.neonlab.common.validationGroups.UpdateValidationGroup;
 import com.neonlab.product.enums.Units;
 import com.neonlab.product.enums.VarietyType;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,6 +16,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VarietyDto {
 
+    @NotEmpty(groups = UpdateValidationGroup.class, message = "Variety Id is mandatory")
     private String id;
     @NotNull(message = "Variety type is mandatory.")
     private VarietyType type;
@@ -29,6 +31,7 @@ public class VarietyDto {
     private BigDecimal discountPercent;
     @NotNull(message = "Product quantity is mandatory.")
     private Integer quantity;
+    @NotEmpty(groups = UpdateValidationGroup.class, message = "Variety's product id is mandatory")
     private String productId;
     private List<MultipartFile> documents;
 }

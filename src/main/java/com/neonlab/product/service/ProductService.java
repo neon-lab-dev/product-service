@@ -2,16 +2,17 @@ package com.neonlab.product.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.config.ConfigurationKeys;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
-import com.neonlab.common.services.BoundedQueue;
 import com.neonlab.common.services.DocumentService;
+import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
-import com.neonlab.product.entities.Order;
+import com.neonlab.common.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
 import com.neonlab.product.models.responses.PageableResponse;
@@ -22,13 +23,13 @@ import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.product.repository.VarietyRepository;
 import com.neonlab.product.repository.specifications.VarietySpecifications;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +40,7 @@ import java.util.Objects;
 @Service
 @Loggable
 @Slf4j
+@RequiredArgsConstructor
 public class ProductService {
 
     public final static String BRAND = "non-branded";
@@ -59,12 +61,11 @@ public class ProductService {
     @Autowired
     private DocumentService documentService;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private VarietyRepository varietyRepository;
-
+    private final ProductRepository productRepository;
+    private final DocumentService documentService;
+    private final UserService userService;
+    private final VarietyRepository varietyRepository;
+    private final SystemConfigService systemConfigService;
 
     public ProductDto add(ProductDto productReqDto) throws ServerException, InvalidInputException {
         var product = save(productReqDto);
@@ -139,12 +140,14 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto update(ProductDto product) throws ServerException, InvalidInputException, IOException {
-       var productEntity = ObjectMapperUtils.map(product, Product.class);
+    public ProductDto update(ProductDto product) throws ServerException, InvalidInputException {
+       var productEntity = fetchById(product.getId());
+       ObjectMapperUtils.map(product, productEntity);
        productEntity = productRepository.save(productEntity);
        var varieties = new ArrayList<VarietyDto>();
        for (var dto : product.getVarieties()){
-           var varietyEntity = ObjectMapperUtils.map(dto, Variety.class);
+           var varietyEntity = fetchVarietyById(dto.getId());
+           ObjectMapperUtils.map(dto, varietyEntity);
            varietyEntity = varietyRepository.save(varietyEntity);
            updateDocumentIfRequired(dto, varietyEntity);
            varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
@@ -238,28 +241,38 @@ public class ProductService {
         return new PageableResponse<>(reslutList, searchCriteria);
     }
 
-    /**
-     * takes product entity as input and gives productDto. In case
-     * of error return null.
-     *
-     * @param variety variety entity
-     * @return null or Product Variety Response
-     */
+
     private ProductVarietyResponse getProductVarietyResponse(Variety variety) {
         ProductVarietyResponse retVal = null;
         try{
-            var product = fetchById(variety.getProduct().getId());
-            var documents = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
-            var documentIds = documents.stream()
-                    .map(Document::getId)
-                    .toList();
-            retVal = ProductVarietyResponse.buildByProductVarietyAndDocuments()
-                    .product(product)
-                    .variety(variety)
-                    .documents(documentIds)
-                    .build();
-        } catch (InvalidInputException ignored){}
+            retVal = fetchProductVarietyResponse(variety);
+        } catch (InvalidInputException e){
+            log.warn(e.getMessage(), e);
+        }
         return retVal;
+    }
+
+    /**
+     * Gives the product variety response from the variety
+     *
+     * @param variety variety entity
+     * @return Product Variety Response
+     * @throws InvalidInputException in case invalid variety details
+     */
+    public ProductVarietyResponse fetchProductVarietyResponse(Variety variety) throws InvalidInputException {
+        var product = fetchById(variety.getProduct().getId());
+        var documents = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
+        var documentIds = documents.stream()
+                .map(Document::getId)
+                .toList();
+        var config = systemConfigService.getSystemConfig(ConfigurationKeys.DELIVERY_CHARGE);
+        var deliveryCharge = BigDecimal.valueOf(Integer.parseInt(config.getValue()));
+        return ProductVarietyResponse.buildByProductVarietyAndDocuments()
+                .product(product)
+                .variety(variety)
+                .documents(documentIds)
+                .deliveryCharges(deliveryCharge)
+                .build();
     }
 
     public void handleCancelOrder(Order order) throws JsonProcessingException, InvalidInputException {
@@ -283,4 +296,10 @@ public class ProductService {
         }
         throw new InvalidInputException("Product not found with Id "+id);
     }
+
+    public Variety fetchVarietyById(String id) throws InvalidInputException {
+        return varietyRepository.findById(id)
+                .orElseThrow(() -> new InvalidInputException("Variety not found with id "+id));
+    }
+
 }
