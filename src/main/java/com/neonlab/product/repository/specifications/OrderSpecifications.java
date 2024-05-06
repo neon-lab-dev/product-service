@@ -1,12 +1,8 @@
 package com.neonlab.product.repository.specifications;
 
-import com.neonlab.common.entities.Address;
 import com.neonlab.common.entities.Order;
 import com.neonlab.common.enums.OrderStatus;
-import com.neonlab.common.utilities.StringUtil;
-import com.neonlab.product.constants.EntityConstant;
 import com.neonlab.product.models.searchCriteria.OrderSearchCriteria;
-import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
 
@@ -14,8 +10,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 import static com.neonlab.common.constants.GlobalConstants.Symbols.PERCENTAGE;
-import static com.neonlab.product.constants.EntityConstant.Address.CITY;
-import static com.neonlab.product.constants.EntityConstant.Address.STATE;
 import static com.neonlab.product.constants.EntityConstant.Order.*;
 
 public class OrderSpecifications {
