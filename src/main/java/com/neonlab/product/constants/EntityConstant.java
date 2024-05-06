@@ -10,10 +10,22 @@ public class EntityConstant {
         public static final String CODE = "code";
     }
     public static class Variety{
-
         public static final String PRODUCT = "product";
         public static final String PRICE = "price";
         public static final String DESCRIPTION = "description";
+    }
+
+    public static class Order{
+        public static final String USER_ID = "userId";
+        public static final String BOUGHT_PRODUCT_DETAILS = "boughtProductDetails";
+        public static final String TOTAL_COST = "totalCost";
+        public static final String ORDER_STATUS = "orderStatus";
+        public static final String ADDRESS_ID = "addressId";
+    }
+
+    public static class Address{
+        public static final String CITY = "city";
+        public static final String STATE = "state";
     }
 
 }

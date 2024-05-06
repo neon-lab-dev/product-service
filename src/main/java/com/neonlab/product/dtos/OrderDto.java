@@ -17,7 +17,6 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -27,6 +26,7 @@ import java.util.Objects;
 @Slf4j
 public class OrderDto {
 
+    private String id;
     @NotEmpty(message = "Payment id should not be empty")
     private String paymentId;
     @Valid
@@ -44,7 +44,10 @@ public class OrderDto {
 
     public void setup(){
         var allDiscountedPrice = this.boughtProductDetailsList.stream()
-                .map(BoughtProductDetailsDto::getDiscountedPrice)
+                .map(boughtProduct ->
+                        boughtProduct.getDiscountedPrice()
+                                .multiply(BigDecimal.valueOf(boughtProduct.getBoughtQuantity()))
+                                .setScale(MathUtils.DEFAULT_SCALE))
                 .toList();
         this.totalItemCost = MathUtils.getSum(allDiscountedPrice);
         this.totalCost = this.totalItemCost.add(this.deliveryCharges);
@@ -93,6 +96,7 @@ public class OrderDto {
         propertyMapper
                 .addMapping(orderDto -> orderDto.getUserDetailsDto().getId(), Order::setUserId)
                 .addMapping(orderDto -> orderDto.getShippingInfo().getId(), Order::setAddressId)
+                .addMapping(OrderDto::getCreatedAt, Order::setCreatedAt)
                 .addMapping(orderDto -> {
                     if (Objects.nonNull(orderDto.getDriverDetailsDto())){
                         return orderDto.getDriverDetailsDto().getId();
@@ -101,11 +105,18 @@ public class OrderDto {
                     }
                 }, Order::setDriverId)
         ;
-        return entityMapper.map(this, Order.class);
+        var retVal = entityMapper.map(this, Order.class);
+        var json = JsonUtils.jsonOf(this.getBoughtProductDetailsList());
+        retVal.setBoughtProductDetails(json);
+        return retVal;
     }
 
-    public static OrderDto parse(Order currentOrder){
-        return entityMapper.map(currentOrder, OrderDto.class);
+    public static OrderDto parse(Order currentOrder) throws JsonParseException {
+        var retVal = entityMapper.map(currentOrder, OrderDto.class);
+        var boughtProductDetails = JsonUtils.readObjectFromJson(currentOrder.getBoughtProductDetails(), new TypeReference<List<BoughtProductDetailsDto>>() {});
+        retVal.setBoughtProductDetailsList(boughtProductDetails);
+        retVal.setPaidDate(currentOrder.getCreatedAt());
+        return retVal;
     }
 
 }

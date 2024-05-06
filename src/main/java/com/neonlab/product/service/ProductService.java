@@ -25,7 +25,6 @@ import com.neonlab.product.repository.specifications.VarietySpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -64,9 +63,9 @@ public class ProductService {
 
     public ProductDto add(ProductDto productReqDto) throws ServerException, InvalidInputException {
         var product = save(productReqDto);
-        var varieties = saveAndMapVarieties(product, productReqDto.getVarieties());
+        var varieties = saveAndMapVarieties(product, productReqDto.getVarietyList());
         var retVal = ObjectMapperUtils.map(product, ProductDto.class);
-        retVal.setVarieties(varieties);
+        retVal.setVarietyList(varieties);
         return retVal;
     }
 
@@ -140,7 +139,7 @@ public class ProductService {
        ObjectMapperUtils.map(product, productEntity);
        productEntity = productRepository.save(productEntity);
        var varieties = new ArrayList<VarietyDto>();
-       for (var dto : product.getVarieties()){
+       for (var dto : product.getVarietyList()){
            var varietyEntity = fetchVarietyById(dto.getId());
            ObjectMapperUtils.map(dto, varietyEntity);
            varietyEntity = varietyRepository.save(varietyEntity);
@@ -148,7 +147,7 @@ public class ProductService {
            varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
        }
        var retVal = ObjectMapperUtils.map(productEntity, ProductDto.class);
-       retVal.setVarieties(varieties);
+       retVal.setVarietyList(varieties);
        return retVal;
     }
 
@@ -296,6 +295,10 @@ public class ProductService {
     public Variety fetchVarietyById(String id) throws InvalidInputException {
         return varietyRepository.findById(id)
                 .orElseThrow(() -> new InvalidInputException("Variety not found with id "+id));
+    }
+
+    public Variety saveVariety(final Variety variety){
+        return varietyRepository.save(variety);
     }
 
 }
