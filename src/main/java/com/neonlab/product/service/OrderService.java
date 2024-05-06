@@ -1,10 +1,9 @@
 package com.neonlab.product.service;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.config.ConfigurationKeys;
+import com.neonlab.common.constants.GlobalConstants;
 import com.neonlab.common.dto.AddressDto;
-import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.dto.UserDto;
 import com.neonlab.common.entities.Address;
 import com.neonlab.common.expectations.InvalidInputException;
@@ -17,7 +16,6 @@ import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.*;
 import com.neonlab.common.entities.Order;
-import com.neonlab.common.enums.OrderStatus;
 import com.neonlab.product.models.requests.UpdateOrderRequest;
 import com.neonlab.product.models.responses.PageableResponse;
 import com.neonlab.product.models.searchCriteria.OrderSearchCriteria;
@@ -25,8 +23,8 @@ import com.neonlab.product.repository.OrderRepository;
 import com.neonlab.product.repository.specifications.OrderSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
@@ -34,6 +32,7 @@ import java.util.*;
 import static com.neonlab.common.config.ConfigurationKeys.CANCELABLE_PERIOD;
 
 
+@Slf4j
 @Service
 @Loggable
 @RequiredArgsConstructor
@@ -159,8 +158,8 @@ public class OrderService {
 
     public PageableResponse<OrderDto> fetch(OrderSearchCriteria searchCriteria) throws InvalidInputException {
         var pageable = PageableUtils.createPageable(searchCriteria);
-        var loggedInUser = userService.getLoggedInUser();
-        searchCriteria.setUserId(loggedInUser.getId());
+        var userId = getUserIdByAdmin(searchCriteria);
+        searchCriteria.setUserId(userId);
         Page<Order> orders = orderRepository.findAll(
                 OrderSpecifications.buildSearchCriteria(searchCriteria),
                 pageable
@@ -178,6 +177,22 @@ public class OrderService {
                 .filter(Objects::nonNull)
                 .toList();
         return new PageableResponse<>(resultList, searchCriteria);
+    }
+
+    private String getUserIdByAdmin(OrderSearchCriteria searchCriteria){
+        String retVal = null;
+        try {
+            if (searchCriteria.isAdmin()){
+                if (!StringUtil.isNullOrEmpty(searchCriteria.getPrimaryPhoneNo())){
+                    retVal = userService.fetchByPrimaryPhoneNo(searchCriteria.getPrimaryPhoneNo()).getId();
+                }
+            } else {
+                retVal = userService.getLoggedInUser().getId();
+            }
+        } catch (InvalidInputException e) {
+            log.warn(GlobalConstants.ERROR_OCCURRED, e.getMessage());
+        }
+        return retVal;
     }
 
 }
