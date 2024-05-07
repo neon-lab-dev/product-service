@@ -8,7 +8,7 @@ import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.DriverDto;
 import com.neonlab.product.entities.Driver;
-import com.neonlab.product.models.responses.PageableResponse;
+import com.neonlab.common.models.PageableResponse;
 import com.neonlab.product.models.searchCriteria.DriverSearchCriteria;
 import com.neonlab.product.repository.DriverRepository;
 import com.neonlab.product.repository.specifications.DriverSpecifications;

@@ -15,7 +15,7 @@ import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.common.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
-import com.neonlab.product.models.responses.PageableResponse;
+import com.neonlab.common.models.PageableResponse;
 import com.neonlab.product.models.responses.ProductVarietyResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;

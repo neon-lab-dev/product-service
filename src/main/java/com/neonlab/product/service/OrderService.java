@@ -17,7 +17,7 @@ import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.*;
 import com.neonlab.common.entities.Order;
 import com.neonlab.product.models.requests.UpdateOrderRequest;
-import com.neonlab.product.models.responses.PageableResponse;
+import com.neonlab.common.models.PageableResponse;
 import com.neonlab.product.models.searchCriteria.OrderSearchCriteria;
 import com.neonlab.product.repository.OrderRepository;
 import com.neonlab.product.repository.specifications.OrderSpecifications;
