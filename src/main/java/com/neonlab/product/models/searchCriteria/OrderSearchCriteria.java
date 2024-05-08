@@ -37,6 +37,10 @@ public class OrderSearchCriteria extends PageableSearchCriteria {
      */
     private BigDecimal maxPrice;
     /**
+     * filter by primaryPhoneNo
+     */
+    private String primaryPhoneNo;
+    /**
      * filter by userId
      */
     private String userId;
