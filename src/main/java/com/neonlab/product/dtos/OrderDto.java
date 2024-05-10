@@ -89,9 +89,6 @@ public class OrderDto {
 
     static {
         entityMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
-    }
-
-    public Order parseToEntity(){
         TypeMap<OrderDto, Order> propertyMapper = entityMapper.createTypeMap(OrderDto.class, Order.class);
         propertyMapper
                 .addMapping(orderDto -> orderDto.getUserDetailsDto().getId(), Order::setUserId)
@@ -105,6 +102,9 @@ public class OrderDto {
                     }
                 }, Order::setDriverId)
         ;
+    }
+
+    public Order parseToEntity(){
         var retVal = entityMapper.map(this, Order.class);
         var json = JsonUtils.jsonOf(this.getBoughtProductDetailsList());
         retVal.setBoughtProductDetails(json);
