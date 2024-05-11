@@ -9,13 +9,13 @@ import com.neonlab.common.expectations.*;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
+import com.neonlab.common.utilities.PageableResponse;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
-import com.neonlab.common.models.PageableResponse;
 import com.neonlab.product.models.responses.ProductVarietyResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
@@ -99,10 +99,12 @@ public class ProductService {
 
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
         var documents = documentService.saveAll(varietyDto.getDocuments());
-        for (var document : documents){
-            document.setDocIdentifier(variety.getId());
-            document.setEntityName(variety.getClass().getSimpleName());
-            documentService.save(document);
+        if(documents != null) {
+            for (var document : documents) {
+                document.setDocIdentifier(variety.getId());
+                document.setEntityName(variety.getClass().getSimpleName());
+                documentService.save(document);
+            }
         }
 
         List<Document>documentList = documentService.fetchByDocIdentifierAndEntityName(variety.getId(),variety.getClass().getSimpleName());
