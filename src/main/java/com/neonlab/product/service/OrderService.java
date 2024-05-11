@@ -48,6 +48,7 @@ public class OrderService {
 
     @Transactional
     public OrderDto createOrder(OrderDto orderDto) throws InvalidInputException, ServerException, JsonParseException {
+        setupUserDto(orderDto);
         for (var boughtProduct : orderDto.getBoughtProductDetailsList()){
             var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
             var productVarietyResponse = productService.fetchProductVarietyResponse(variety);
@@ -71,7 +72,7 @@ public class OrderService {
     }
 
     private void setupUserDto(OrderDto orderDto) throws InvalidInputException, ServerException {
-        var user =userService.getLoggedInUser();;
+        var user=userService.getLoggedInUser();
         var userDetails = ObjectMapperUtils.map(user, UserDto.class);
         orderDto.setUserDetailsDto(userDetails);
     }
@@ -144,7 +145,7 @@ public class OrderService {
     }
 
     private void validateUserAndAddress(OrderDto orderDto) throws InvalidInputException {
-        var user = userService.fetchById(orderDto.getUserDetailsDto().getId());
+        var user = userService.getLoggedInUser();
         var userAddresses = user.getAddresses().stream()
                 .map(Address::getId)
                 .toList();
