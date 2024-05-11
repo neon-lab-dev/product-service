@@ -151,7 +151,7 @@ public class OrderService {
         var isUserAddress = userAddresses.contains(shippingAddressId);
         if (!isUserAddress){
             throw new InvalidInputException(
-                    String.format("Address Id %s does not belong to user Id %s", user.getId(), shippingAddressId)
+                    String.format("Address Id %s does not belong to user Id %s", shippingAddressId, user.getId())
             );
         }
     }
