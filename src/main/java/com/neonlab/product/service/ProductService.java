@@ -96,11 +96,13 @@ public class ProductService {
     }
 
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
-        var documents = documentService.saveAll(varietyDto.getDocuments());
-        for (var document : documents){
-            document.setDocIdentifier(variety.getId());
-            document.setEntityName(variety.getClass().getSimpleName());
-            documentService.save(document);
+        if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
+            var documents = documentService.saveAll(varietyDto.getDocuments());
+            for (var document : documents){
+                document.setDocIdentifier(variety.getId());
+                document.setEntityName(variety.getClass().getSimpleName());
+                documentService.save(document);
+            }
         }
     }
 
