@@ -6,6 +6,7 @@ import com.neonlab.common.constants.GlobalConstants;
 import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.UserDto;
 import com.neonlab.common.entities.Address;
+import com.neonlab.common.entities.User;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.services.AddressService;
@@ -70,7 +71,7 @@ public class OrderService {
     }
 
     private void setupUserDto(OrderDto orderDto) throws InvalidInputException, ServerException {
-        var user = userService.fetchById(orderDto.getUserDetailsDto().getId());
+        var user =userService.getLoggedInUser();;
         var userDetails = ObjectMapperUtils.map(user, UserDto.class);
         orderDto.setUserDetailsDto(userDetails);
     }
@@ -193,6 +194,14 @@ public class OrderService {
             log.warn(GlobalConstants.ERROR_OCCURRED, e.getMessage());
         }
         return retVal;
+    }
+
+    public boolean paymentIdExist(String payment_id){
+        Optional<Order> optionalOrder=orderRepository.findByPaymentId(payment_id);
+        if(optionalOrder.isEmpty()){
+            return false;
+        }
+        return  true;
     }
 
 }

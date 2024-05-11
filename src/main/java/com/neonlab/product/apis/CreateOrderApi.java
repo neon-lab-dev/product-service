@@ -32,16 +32,15 @@ public class CreateOrderApi {
 
     private void validate(OrderDto orderDto) throws InvalidInputException {
         validationUtils.validate(orderDto);
-        try {
-            validationUtils.validate(orderDto.getUserDetailsDto(), AddOrderValidationGroup.class);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidInputException("user details is mandatory");
+        if(orderService.paymentIdExist(orderDto.getPaymentId())){
+            throw new InvalidInputException("Order with same payment id exist.");
         }
         try {
             validationUtils.validate(orderDto.getShippingInfo(), AddOrderValidationGroup.class);
         } catch (IllegalArgumentException e) {
             throw new InvalidInputException("Shipping details is mandatory.");
         }
+
         orderService.createOrderValidations(orderDto);
     }
 
