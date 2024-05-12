@@ -198,12 +198,9 @@ public class OrderService {
         return retVal;
     }
 
-    public boolean paymentIdExist(String payment_id){
-        Optional<Order> optionalOrder=orderRepository.findByPaymentId(payment_id);
-        if(optionalOrder.isEmpty()){
-            return false;
-        }
-        return  true;
+    public boolean paymentIdExist(String paymentId){
+        Optional<Order> optionalOrder=orderRepository.findByPaymentId(paymentId);
+        return optionalOrder.isPresent();
     }
 
     public void validateUpdateRequest(UpdateOrderRequest request) throws InvalidInputException {
