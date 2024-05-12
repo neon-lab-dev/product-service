@@ -34,4 +34,5 @@ public class VarietyDto {
     @NotEmpty(groups = UpdateValidationGroup.class, message = "Variety's product id is mandatory")
     private String productId;
     private List<MultipartFile> documents;
+    private List<String> documentUrls;
 }
