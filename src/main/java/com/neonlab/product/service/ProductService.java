@@ -8,6 +8,7 @@ import com.neonlab.common.expectations.*;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
+import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
@@ -203,6 +204,7 @@ public class ProductService {
             var productId = variety.getProduct().getId();
             var value = retVal.getOrDefault(productId, new ArrayList<>());
             var dto = ObjectMapperUtils.map(variety, VarietyDto.class);
+            dto.setDiscountPrice(MathUtils.getDiscountedPrice(dto.getPrice(), dto.getDiscountPercent()));
             var docIds = getDocumentIds(variety);
             dto.setDocumentUrls(docIds);
             value.add(dto);
@@ -240,17 +242,6 @@ public class ProductService {
                 .documents(documentIds)
                 .deliveryCharges(deliveryCharge)
                 .build();
-    }
-
-    public void handleCancelOrder(Order order) throws JsonProcessingException, InvalidInputException {
-        ObjectMapper mapper = new ObjectMapper();
-        BoughtProductDetailsDto[] boughtProductList = mapper.readValue(order.getBoughtProductDetails(), BoughtProductDetailsDto[].class);
-        for(var boughtProducts:boughtProductList) {
-            //var product = fetchProductByCode(boughtProducts.getCode());
-//            Integer existQty = product.getQantity();
-//            product.setQuantity(existQty+boughtProducts.getQuantity());
-           // productRepository.save(product);
-        }
     }
 
     private Product fetchById(String id) throws InvalidInputException {

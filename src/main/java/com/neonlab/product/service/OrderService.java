@@ -6,7 +6,7 @@ import com.neonlab.common.constants.GlobalConstants;
 import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.UserDto;
 import com.neonlab.common.entities.Address;
-import com.neonlab.common.entities.User;
+import com.neonlab.common.enums.OrderStatus;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.services.AddressService;
@@ -48,7 +48,8 @@ public class OrderService {
 
     @Transactional
     public OrderDto createOrder(OrderDto orderDto) throws InvalidInputException, ServerException, JsonParseException {
-        setupUserDto(orderDto);
+        var user = userService.getLoggedInUser();
+        orderDto.setUserDetailsDto(new UserDto(user.getId()));
         for (var boughtProduct : orderDto.getBoughtProductDetailsList()){
             var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
             var productVarietyResponse = productService.fetchProductVarietyResponse(variety);
@@ -72,7 +73,7 @@ public class OrderService {
     }
 
     private void setupUserDto(OrderDto orderDto) throws InvalidInputException, ServerException {
-        var user=userService.getLoggedInUser();
+        var user=userService.fetchById(orderDto.getUserDetailsDto().getId());
         var userDetails = ObjectMapperUtils.map(user, UserDto.class);
         orderDto.setUserDetailsDto(userDetails);
     }
@@ -203,6 +204,23 @@ public class OrderService {
             return false;
         }
         return  true;
+    }
+
+    public void validateUpdateRequest(UpdateOrderRequest request) throws InvalidInputException {
+        fetchById(request.getId());
+        if (Objects.nonNull(request.getOrderStatus())){
+            if (Objects.equals(request.getOrderStatus(), OrderStatus.OUT_FOR_DELIVERY)){
+                if (!StringUtil.isNullOrEmpty(request.getDriverId())) {
+                    driverService.fetchById(request.getDriverId());
+                } else {
+                    throw new InvalidInputException(
+                            String.format("Status updated to %s but driver not assigned.", request.getOrderStatus().orderStatus));
+                }
+            }
+        }
+        if (!StringUtil.isNullOrEmpty(request.getDriverId())){
+            driverService.fetchById(request.getDriverId());
+        }
     }
 
 }
