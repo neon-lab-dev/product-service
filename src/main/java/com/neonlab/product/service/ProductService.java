@@ -4,18 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.config.ConfigurationKeys;
 import com.neonlab.common.entities.Document;
-import com.neonlab.common.entities.Order;
 import com.neonlab.common.expectations.*;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
-import com.neonlab.common.utilities.PageableResponse;
+import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
+import com.neonlab.common.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
+import com.neonlab.common.models.PageableResponse;
 import com.neonlab.product.models.responses.ProductVarietyResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
@@ -30,10 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 
 @Service
@@ -51,8 +49,6 @@ public class ProductService {
     public final static String DELETE_MESSAGE = "Product deleted successfully.";
 
     public final static String WHOLE_PRODUCT_DELETE_MESSAGE = "Product Deleted Successfully";
-
-    public final static Integer MAX_DOCUMENT_LIMIT_SIZE = 4;
 
 
     private final ProductRepository productRepository;
@@ -98,24 +94,14 @@ public class ProductService {
     }
 
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
-        var documents = documentService.saveAll(varietyDto.getDocuments());
-        if(documents != null) {
-            for (var document : documents) {
+        if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
+            var documents = documentService.saveAll(varietyDto.getDocuments());
+            for (var document : documents){
                 document.setDocIdentifier(variety.getId());
                 document.setEntityName(variety.getClass().getSimpleName());
                 documentService.save(document);
             }
         }
-
-        List<Document>documentList = documentService.fetchByDocIdentifierAndEntityName(variety.getId(),variety.getClass().getSimpleName());
-        if(documentList.size()>MAX_DOCUMENT_LIMIT_SIZE){
-            int excess = documentList.size() - MAX_DOCUMENT_LIMIT_SIZE;
-            for (int i = 0; i < excess; i++) {
-                Document document = documentList.get(i);
-                documentService.delete(document);
-            }
-        }
-
     }
 
     private Variety saveVariety(VarietyDto varietyDto, Product product) throws ServerException, InvalidInputException {
@@ -153,48 +139,9 @@ public class ProductService {
        return retVal;
     }
 
-    @Transactional
     private void updateDocumentIfRequired(VarietyDto varietyDto, Variety variety) throws ServerException {
         if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
             saveAndMapDocument(varietyDto, variety);
-        }
-    }
-
-    /*
-    @Transactional
-    private List<Document> enforceDocumentLimitForProduct(List<String> documentId , VarietyDto variety) throws InvalidInputException {
-        var boundedQueue = new BoundedQueue<String>(4);
-
-        List<Document> documentList =
-                documentService.fetchByDocIdentifierAndEntityName(
-                        variety.getId(), variety.getClass().getSimpleName());
-        for(Document document : documentList){
-            boundedQueue.add(document.getId());
-        }
-
-        var documents = new ArrayList<Document>();
-        for(String id : documentId){
-            var document = documentService.fetchById(id);
-            documents.add(document);
-            String oldestDocId = boundedQueue.add(document.getId());
-            if (oldestDocId != null && !oldestDocId.isEmpty()) {
-                Document oldDocument = documentService.fetchById(oldestDocId);
-                documentService.delete(oldDocument);
-            }
-        }
-        mapDocument(variety , documents);
-        return documentService.fetchByDocIdentifierAndEntityName(existProduct.getId(),
-                existProduct.getClass().getSimpleName());
-    }
-
-     */
-
-
-    private void mapDocument(Product product, List<Document> documents) {
-        for(var document : documents) {
-            document.setEntityName(product.getClass().getSimpleName());
-            document.setDocIdentifier(product.getId());
-            documentService.save(document);
         }
     }
 
@@ -207,13 +154,6 @@ public class ProductService {
         return DELETE_MESSAGE;
     }
 
-    public boolean isReduceQuantityValid(String code, Integer quantity) throws InvalidInputException {
-        /*Product product = fetchProductByCode(code);
-        assert quantity != null;
-        return product.getQuantity()>=quantity;*/
-        return true;
-    }
-
     public String deleteWholeProduct(Product product) {
         productRepository.delete(product);
         return WHOLE_PRODUCT_DELETE_MESSAGE;
@@ -224,28 +164,61 @@ public class ProductService {
                 .orElseThrow(() -> new InvalidInputException("Product not found with code "+code));
     }
 
-    public PageableResponse<ProductVarietyResponse> fetchProducts(final ProductSearchCriteria searchCriteria){
+    public PageableResponse<ProductDto> fetchProducts(final ProductSearchCriteria searchCriteria){
         var pageable = PageableUtils.createPageable(searchCriteria);
         Page<Variety> varieties = varietyRepository.findAll(
                 VarietySpecifications.buildSearchCriteria(searchCriteria),
                 pageable
         );
-        var reslutList = varieties.getContent().stream()
-                .map(this::getProductVarietyResponse)
-                .filter(Objects::nonNull)
-                .toList();
+        var reslutList = fetchProductDto(varieties.getContent());
         return new PageableResponse<>(reslutList, searchCriteria);
     }
 
-
-    private ProductVarietyResponse getProductVarietyResponse(Variety variety) {
-        ProductVarietyResponse retVal = null;
-        try{
-            retVal = fetchProductVarietyResponse(variety);
-        } catch (InvalidInputException e){
-            log.warn(e.getMessage(), e);
+    private List<ProductDto> fetchProductDto(List<Variety> varieties){
+        var retVal = new ArrayList<ProductDto>();
+        if (!CollectionUtils.isEmpty(varieties)){
+            var productVarietyMap = new HashMap<String, List<VarietyDto>>();
+            varieties.forEach(variety -> constructProductIdToVarietyDtoListMap(productVarietyMap, variety));
+            for (var entry : productVarietyMap.entrySet()){
+                retVal.add(constructProductDto(entry.getKey(), entry.getValue()));
+            }
         }
         return retVal;
+    }
+
+    private ProductDto constructProductDto(String productId, List<VarietyDto> varietyDtos){
+        try {
+            var product = fetchById(productId);
+            var dto = ObjectMapperUtils.map(product, ProductDto.class);
+            dto.setVarietyList(varietyDtos);
+            return dto;
+        } catch (ServerException | InvalidInputException e) {
+            log.warn(e.getMessage());
+        }
+        return null;
+    }
+
+
+    private void constructProductIdToVarietyDtoListMap(Map<String, List<VarietyDto>> retVal, Variety variety) {
+        try {
+            var productId = variety.getProduct().getId();
+            var value = retVal.getOrDefault(productId, new ArrayList<>());
+            var dto = ObjectMapperUtils.map(variety, VarietyDto.class);
+            dto.setDiscountPrice(MathUtils.getDiscountedPrice(dto.getPrice(), dto.getDiscountPercent()));
+            var docIds = getDocumentIds(variety);
+            dto.setDocumentUrls(docIds);
+            value.add(dto);
+            retVal.put(productId, value);
+        } catch (ServerException e) {
+            log.warn(e.getMessage());
+        }
+    }
+
+    private List<String> getDocumentIds(Variety variety){
+        var docs = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
+        return docs.stream()
+                .map(Document::getId)
+                .toList();
     }
 
     /**
@@ -270,21 +243,6 @@ public class ProductService {
                 .deliveryCharges(deliveryCharge)
                 .build();
     }
-
-    public void handleCancelOrder(Order order) throws JsonProcessingException, InvalidInputException {
-        ObjectMapper mapper = new ObjectMapper();
-        BoughtProductDetailsDto[] boughtProductList = mapper.readValue(order.getBoughtProductDetails(), BoughtProductDetailsDto[].class);
-        for(var boughtProducts:boughtProductList) {
-            var product = fetchVarietyById(boughtProducts.getVarietyId()).getProduct();
-            var varietyList = product.getVarieties();
-            for(var variety : varietyList){
-                Integer existQty = variety.getQuantity();
-                variety.setQuantity(existQty+boughtProducts.getBoughtQuantity());
-            }
-            productRepository.save(product);
-        }
-    }
-
 
     private Product fetchById(String id) throws InvalidInputException {
         var retVal = productRepository.findById(id);

@@ -43,5 +43,8 @@ public class AddDriverApi {
             throw new InvalidInputException("Driver exists with vehicle no "+ driverDto.getVehicleNo());
         }
         //TODO: Add validation for valid phone no (10 characters)
+        if(driverDto.getContactNo().length()!=10){
+            throw new InvalidInputException("Please enter valid contact number.");
+        }
     }
 }

@@ -29,9 +29,11 @@ public class VarietyDto {
     @NotNull(message = "Product price is mandatory.")
     private BigDecimal price;
     private BigDecimal discountPercent;
+    private BigDecimal discountPrice;
     @NotNull(message = "Product quantity is mandatory.")
     private Integer quantity;
     @NotEmpty(groups = UpdateValidationGroup.class, message = "Variety's product id is mandatory")
     private String productId;
     private List<MultipartFile> documents;
+    private List<String> documentUrls;
 }

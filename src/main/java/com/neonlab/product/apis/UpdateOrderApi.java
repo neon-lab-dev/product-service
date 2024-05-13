@@ -35,6 +35,6 @@ public class UpdateOrderApi {
 
     private void validate(UpdateOrderRequest request) throws InvalidInputException {
         validationUtils.validate(request);
-        orderService.fetchById(request.getId());
+        orderService.validateUpdateRequest(request);
     }
 }
