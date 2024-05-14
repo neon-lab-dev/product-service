@@ -8,6 +8,7 @@ public class EntityConstant {
         public static final String SUB_CATEGORY= "subCategory";
         public static final String BRAND = "brand";
         public static final String CODE = "code";
+        public static final String VARIETIES = "varieties";
     }
     public static class Variety{
         public static final String PRODUCT = "product";

@@ -6,8 +6,10 @@ import com.neonlab.product.entities.Variety;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 import static com.neonlab.common.constants.GlobalConstants.Symbols.PERCENTAGE;
@@ -30,8 +32,8 @@ public class VarietySpecifications {
         if (!StringUtil.isNullOrEmpty(searchCriteria.getBrand())){
             retVal = retVal.and(filterByBrand(searchCriteria.getBrand()));
         }
-        if (!StringUtil.isNullOrEmpty(searchCriteria.getCode())){
-            retVal = retVal.and(filterByCode(searchCriteria.getCode()));
+        if (!CollectionUtils.isEmpty(searchCriteria.getCodes())){
+            retVal = retVal.and(filterByCodeIn(searchCriteria.getCodes()));
         }
         if (Objects.nonNull(searchCriteria.getMinimumPrice())){
             retVal = retVal.and(filterByMinimumPrice(searchCriteria.getMinimumPrice()));
@@ -86,11 +88,11 @@ public class VarietySpecifications {
         );
     }
 
-    private static Specification<Variety> filterByCode(final String code){
+    private static Specification<Variety> filterByCodeIn(final List<String> codes){
         return ((root, query, criteriaBuilder) ->
         {
             Join<Variety, Product> productVarietyJoin = root.join(PRODUCT);
-            return criteriaBuilder.equal(productVarietyJoin.get(CODE), code);
+            return criteriaBuilder.in(productVarietyJoin.get(CODE)).value(codes);
         }
         );
     }
