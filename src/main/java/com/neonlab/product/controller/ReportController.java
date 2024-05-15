@@ -7,7 +7,6 @@ import com.neonlab.product.apis.ProductReportApi;
 import com.neonlab.product.models.responses.OrderReportModel;
 import com.neonlab.product.models.responses.ProductReportModel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
