@@ -1,5 +1,4 @@
 package com.neonlab.product.entities;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.neonlab.common.entities.Generic;
 import com.neonlab.common.utilities.JsonUtils;

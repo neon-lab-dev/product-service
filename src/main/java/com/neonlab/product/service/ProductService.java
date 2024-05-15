@@ -54,20 +54,33 @@ public class ProductService {
     private final SystemConfigService systemConfigService;
 
     public ProductDto add(ProductDto productReqDto) throws ServerException, InvalidInputException {
-        var product = save(productReqDto);
+        var product = saveAndMapDocument(productReqDto);
         var varieties = saveAndMapVarieties(product, productReqDto.getVarietyList());
         var retVal = ObjectMapperUtils.map(product, ProductDto.class);
         retVal.setVarietyList(varieties);
         return retVal;
     }
 
-    private Product save(ProductDto productDto) throws ServerException, InvalidInputException {
+    private Product saveAndMapDocument(ProductDto productDto) throws ServerException, InvalidInputException {
         var retVal = ObjectMapperUtils.map(productDto, Product.class);
         setDefaultIfRequired(retVal);
         var user = userService.getLoggedInUser();
         retVal.setCreatedBy(user.getPrimaryPhoneNo());
         retVal.setCreatedAt(new Date());
-        return productRepository.save(retVal);
+        var product = productRepository.save(retVal);
+        if (!CollectionUtils.isEmpty(productDto.getDocuments())){
+            var documents = documentService.saveAll(productDto.getDocuments());
+            for (var document : documents) {
+                document.setDocIdentifier(product.getId());
+                document.setEntityName(product.getClass().getSimpleName());
+                documentService.save(document);
+            }
+            var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(product.getId(), product.getClass().getSimpleName());
+            if (documentList.size() > 4) {
+                documentService.maintainSize(documentList);
+            }
+        }
+        return product;
     }
 
     private void setDefaultIfRequired(Product product){
@@ -92,10 +105,14 @@ public class ProductService {
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
         if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
             var documents = documentService.saveAll(varietyDto.getDocuments());
-            for (var document : documents){
+            for (var document : documents) {
                 document.setDocIdentifier(variety.getId());
                 document.setEntityName(variety.getClass().getSimpleName());
                 documentService.save(document);
+            }
+            var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(variety.getId(), variety.getClass().getSimpleName());
+            if (documentList.size() > 4) {
+                documentService.maintainSize(documentList);
             }
         }
     }
