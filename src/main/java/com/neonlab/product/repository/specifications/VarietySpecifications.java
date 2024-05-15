@@ -41,6 +41,9 @@ public class VarietySpecifications {
         if (Objects.nonNull(searchCriteria.getMaximumPrice())){
             retVal = retVal.and(filterByMaximumPrice(searchCriteria.getMaximumPrice()));
         }
+        if (Objects.nonNull(searchCriteria.getQuantity())){
+            retVal = retVal.and(filterByVarietyQuantity(searchCriteria.getQuantity()));
+        }
         if (!StringUtil.isNullOrEmpty(searchCriteria.getVarietyDescription())){
             var words = searchCriteria.getVarietyDescription().split(" ");
             Specification<Variety> varietySpecification = Specification.where(null);
@@ -112,6 +115,12 @@ public class VarietySpecifications {
     private static Specification<Variety> filterByVarietyDescriptionLike(final String varietyDescription){
         return ((root, query, criteriaBuilder) ->
                     criteriaBuilder.like(root.get(DESCRIPTION), varietyDescription)
+                );
+    }
+
+    private static Specification<Variety> filterByVarietyQuantity(final Integer quantity){
+        return ((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(QUANTITY), quantity)
                 );
     }
 

@@ -14,6 +14,7 @@ public class EntityConstant {
         public static final String PRODUCT = "product";
         public static final String PRICE = "price";
         public static final String DESCRIPTION = "description";
+        public static final String QUANTITY = "quantity";
     }
 
     public static class Order{
