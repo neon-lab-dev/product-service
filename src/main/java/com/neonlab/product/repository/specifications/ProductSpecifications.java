@@ -39,6 +39,9 @@ public class ProductSpecifications {
         if (Objects.nonNull(searchCriteria.getMaximumPrice())){
             retVal = retVal.and(filterByMaximumPrice(searchCriteria.getMaximumPrice()));
         }
+        if (Objects.nonNull(searchCriteria.getQuantity())){
+            retVal = retVal.and(filterByVarietyQuantity(searchCriteria.getQuantity()));
+        }
         if (!StringUtil.isNullOrEmpty(searchCriteria.getVarietyDescription())){
             var words = searchCriteria.getVarietyDescription().split(" ");
             Specification<Product> varietySpecification = Specification.where(null);
@@ -102,6 +105,15 @@ public class ProductSpecifications {
         {
             var productVarietyJoin = root.join(VARIETIES);
             return criteriaBuilder.like(productVarietyJoin.get(DESCRIPTION), varietyDescription);
+        }
+        );
+    }
+
+    private static Specification<Product> filterByVarietyQuantity(final Integer quantity){
+        return ((root, query, criteriaBuilder) ->
+        {
+            var productVarietyJoin = root.join(VARIETIES);
+            return criteriaBuilder.equal(productVarietyJoin.get(QUANTITY), quantity);
         }
         );
     }

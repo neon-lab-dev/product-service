@@ -13,6 +13,7 @@ import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
+import com.neonlab.product.models.responses.ProductReportModel;
 import com.neonlab.product.models.responses.ProductVarietyResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
@@ -276,6 +277,17 @@ public class ProductService {
 
     public Variety saveVariety(final Variety variety){
         return varietyRepository.save(variety);
+    }
+
+    public ProductReportModel getReport(){
+        var totalProducts = productRepository.count();
+        var outOfStockCount = productRepository.count(
+                ProductSpecifications.buildSearchCriteria(
+                        ProductSearchCriteria.productSearchCriteriaBuilder()
+                                .quantity(0)
+                                .build()
+                ));
+        return new ProductReportModel(totalProducts, outOfStockCount);
     }
 
 }
