@@ -1,32 +1,28 @@
 package com.neonlab.product.service;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.config.ConfigurationKeys;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
+import com.neonlab.common.models.PageableResponse;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.PageableUtils;
-import com.neonlab.product.dtos.BoughtProductDetailsDto;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
-import com.neonlab.common.entities.Order;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
-import com.neonlab.common.models.PageableResponse;
 import com.neonlab.product.models.responses.ProductVarietyResponse;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import com.neonlab.product.repository.ProductRepository;
 import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.product.repository.VarietyRepository;
+import com.neonlab.product.repository.specifications.ProductSpecifications;
 import com.neonlab.product.repository.specifications.VarietySpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -166,12 +162,16 @@ public class ProductService {
 
     public PageableResponse<ProductDto> fetchProducts(final ProductSearchCriteria searchCriteria){
         var pageable = PageableUtils.createPageable(searchCriteria);
-        Page<Variety> varieties = varietyRepository.findAll(
-                VarietySpecifications.buildSearchCriteria(searchCriteria),
+        var productCodes = productRepository.findAll(
+                ProductSpecifications.buildSearchCriteria(searchCriteria),
                 pageable
+        ).getContent().stream().map(Product::getCode).toList();
+        searchCriteria.setCodes(productCodes);
+        var varieties = varietyRepository.findAll(
+                VarietySpecifications.buildSearchCriteria(searchCriteria)
         );
-        var reslutList = fetchProductDto(varieties.getContent());
-        return new PageableResponse<>(reslutList, searchCriteria);
+        var resultList = fetchProductDto(varieties);
+        return new PageableResponse<>(resultList, searchCriteria);
     }
 
     private List<ProductDto> fetchProductDto(List<Variety> varieties){

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort.Direction;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -38,7 +39,7 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
     /**
      * filter by product code
      */
-    private String code;
+    private List<String> codes;
 
     /**
      * filter by varietyType
@@ -71,7 +72,7 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
             final String category,
             final String subCategory,
             final String brand,
-            final String code,
+            final List<String> codes,
             final VarietyType varietyType,
             final String value,
             final BigDecimal minimumPrice,
@@ -86,7 +87,7 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
         this.category = category;
         this.subCategory = subCategory;
         this.brand = brand;
-        this.code = code;
+        this.codes = codes;
         this.varietyType = varietyType;
         this.value = value;
         this.minimumPrice = minimumPrice;
