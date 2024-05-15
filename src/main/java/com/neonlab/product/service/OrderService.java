@@ -19,6 +19,7 @@ import com.neonlab.product.dtos.*;
 import com.neonlab.common.entities.Order;
 import com.neonlab.product.models.requests.UpdateOrderRequest;
 import com.neonlab.common.models.PageableResponse;
+import com.neonlab.product.models.responses.OrderReportModel;
 import com.neonlab.product.models.searchCriteria.OrderSearchCriteria;
 import com.neonlab.product.repository.OrderRepository;
 import com.neonlab.product.repository.specifications.OrderSpecifications;
@@ -218,6 +219,23 @@ public class OrderService {
         if (!StringUtil.isNullOrEmpty(request.getDriverId())){
             driverService.fetchById(request.getDriverId());
         }
+    }
+
+    public OrderReportModel getReport(){
+        var totalOrders = orderRepository.count();
+        var countPerStatus = new HashMap<OrderStatus, Long>();
+        for (var orderStatus : OrderStatus.values()){
+            var value = orderRepository.count(
+                    OrderSpecifications.buildSearchCriteria(
+                            OrderSearchCriteria.orderSearchCriteriaBuilder()
+                                    .admin(true)
+                                    .orderStatus(orderStatus)
+                                    .build()
+                    )
+            );
+            countPerStatus.put(orderStatus, value);
+        }
+        return new OrderReportModel(totalOrders, countPerStatus);
     }
 
 }
