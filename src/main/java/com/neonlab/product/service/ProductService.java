@@ -90,6 +90,7 @@ public class ProductService {
         return retVal;
     }
 
+
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
         if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
             var documents = documentService.saveAll(varietyDto.getDocuments());

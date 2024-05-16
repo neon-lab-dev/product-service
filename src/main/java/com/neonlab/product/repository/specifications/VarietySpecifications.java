@@ -1,11 +1,14 @@
 package com.neonlab.product.repository.specifications;
 
 import com.neonlab.common.utilities.StringUtil;
+import com.neonlab.product.entities.Category;
 import com.neonlab.product.entities.Product;
 import com.neonlab.product.entities.Variety;
 import com.neonlab.product.models.searchCriteria.ProductSearchCriteria;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -128,4 +131,8 @@ public class VarietySpecifications {
         return PERCENTAGE + str + PERCENTAGE;
     }
 
+    @Repository
+    public static interface CategoryRepository  extends JpaRepository<Category,Integer> {
+
+    }
 }
