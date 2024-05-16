@@ -9,6 +9,7 @@ import com.neonlab.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 
 @Loggable
@@ -23,8 +24,10 @@ public class UpdateProductApi {
     public ApiOutput<ProductDto> updateProduct(ProductDto product) {
         try {
             validationUtils.validate(product, UpdateValidationGroup.class);
-            for(var variety : product.getVarietyList()){
-                validationUtils.validate(variety, UpdateValidationGroup.class);
+            if(!CollectionUtils.isEmpty(product.getVarietyList())) {
+                for (var variety : product.getVarietyList()) {
+                    validationUtils.validate(variety, UpdateValidationGroup.class);
+                }
             }
             ProductDto productDto = productService.update(product);
             return new ApiOutput<>(HttpStatus.OK.value(),"Product Update Successfully",productDto);

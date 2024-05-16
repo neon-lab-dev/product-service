@@ -69,6 +69,11 @@ public class ProductService {
         retVal.setCreatedBy(user.getPrimaryPhoneNo());
         retVal.setCreatedAt(new Date());
         var product = productRepository.save(retVal);
+        mapProductDocument(productDto, product);
+        return product;
+    }
+
+    private void mapProductDocument(ProductDto productDto, Product product) throws ServerException {
         if (!CollectionUtils.isEmpty(productDto.getDocuments())){
             var documents = documentService.saveAll(productDto.getDocuments());
             for (var document : documents) {
@@ -81,7 +86,6 @@ public class ProductService {
                 documentService.maintainSize(documentList);
             }
         }
-        return product;
     }
 
     private void setDefaultIfRequired(Product product){
@@ -138,19 +142,28 @@ public class ProductService {
     @Transactional
     public ProductDto update(ProductDto product) throws ServerException, InvalidInputException {
        var productEntity = fetchById(product.getId());
+       updateDocumentIfRequired(product,productEntity);
        ObjectMapperUtils.map(product, productEntity);
        productEntity = productRepository.save(productEntity);
        var varieties = new ArrayList<VarietyDto>();
-       for (var dto : product.getVarietyList()){
-           var varietyEntity = fetchVarietyById(dto.getId());
-           ObjectMapperUtils.map(dto, varietyEntity);
-           varietyEntity = varietyRepository.save(varietyEntity);
-           updateDocumentIfRequired(dto, varietyEntity);
-           varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
+       if(!CollectionUtils.isEmpty(product.getVarietyList())) {
+           for (var dto : product.getVarietyList()) {
+               var varietyEntity = fetchVarietyById(dto.getId());
+               ObjectMapperUtils.map(dto, varietyEntity);
+               varietyEntity = varietyRepository.save(varietyEntity);
+               updateDocumentIfRequired(dto, varietyEntity);
+               varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
+           }
        }
        var retVal = ObjectMapperUtils.map(productEntity, ProductDto.class);
        retVal.setVarietyList(varieties);
        return retVal;
+    }
+
+    private void updateDocumentIfRequired(ProductDto product, Product productEntity) throws InvalidInputException, ServerException {
+        if(!CollectionUtils.isEmpty(product.getDocuments())){
+            mapProductDocument(product,productEntity);
+        }
     }
 
     private void updateDocumentIfRequired(VarietyDto varietyDto, Variety variety) throws ServerException {
@@ -219,22 +232,28 @@ public class ProductService {
 
     private void constructProductIdToVarietyDtoListMap(Map<String, List<VarietyDto>> retVal, Variety variety) {
         try {
-            var productId = variety.getProduct().getId();
-            var value = retVal.getOrDefault(productId, new ArrayList<>());
+            var product = variety.getProduct();
+            var value = retVal.getOrDefault(product.getId(), new ArrayList<>());
             var dto = ObjectMapperUtils.map(variety, VarietyDto.class);
             dto.setDiscountPrice(MathUtils.getDiscountedPrice(dto.getPrice(), dto.getDiscountPercent()));
-            var docIds = getDocumentIds(variety);
+            var docIds = getDocumentIds(variety,product);
             dto.setDocumentUrls(docIds);
             value.add(dto);
-            retVal.put(productId, value);
+            retVal.put(product.getId(), value);
         } catch (ServerException e) {
             log.warn(e.getMessage());
         }
     }
 
-    private List<String> getDocumentIds(Variety variety){
+    private List<String> getDocumentIds(Variety variety, Product product){
         var docs = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
-        return docs.stream()
+        if(!CollectionUtils.isEmpty(docs)) {
+            return docs.stream()
+                    .map(Document::getId)
+                    .toList();
+        }
+        var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(),product.getClass().getSimpleName());
+        return productDoc.stream()
                 .map(Document::getId)
                 .toList();
     }
