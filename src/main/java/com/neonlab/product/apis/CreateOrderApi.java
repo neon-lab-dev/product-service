@@ -32,9 +32,9 @@ public class CreateOrderApi {
 
     private void validate(OrderDto orderDto) throws InvalidInputException {
         validationUtils.validate(orderDto);
-        if(orderService.paymentIdExist(orderDto.getPaymentId())){
+        /*if(orderService.paymentIdExist(orderDto.getPaymentId())){
             throw new InvalidInputException("Order with same payment id exist.");
-        }
+        }*/
         try {
             validationUtils.validate(orderDto.getShippingInfo(), AddOrderValidationGroup.class);
         } catch (IllegalArgumentException e) {
