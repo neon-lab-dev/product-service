@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -59,8 +58,10 @@ public class ProductService {
         var varieties = saveAndMapVarieties(product, productReqDto.getVarietyList());
         var retVal = ObjectMapperUtils.map(product, ProductDto.class);
         retVal.setVarietyList(varieties);
+        retVal.setDocumentUrls(getDocumentIds(product));
         return retVal;
     }
+
 
     private Product saveAndMapDocument(ProductDto productDto) throws ServerException, InvalidInputException {
         var retVal = ObjectMapperUtils.map(productDto, Product.class);
@@ -81,10 +82,7 @@ public class ProductService {
                 document.setEntityName(product.getClass().getSimpleName());
                 documentService.save(document);
             }
-            var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(product.getId(), product.getClass().getSimpleName());
-            if (documentList.size() > 4) {
-                documentService.maintainSize(documentList);
-            }
+            limitDocumentSize(product.getId(),product.getClass().getSimpleName());
         }
     }
 
@@ -102,7 +100,9 @@ public class ProductService {
         for (var varietyDto : varieties){
             var variety = saveVariety(varietyDto,product);
             saveAndMapDocument(varietyDto, variety);
-            retVal.add(ObjectMapperUtils.map(variety, VarietyDto.class));
+            var varDto = ObjectMapperUtils.map(variety, VarietyDto.class);
+            varDto.setDocumentUrls(getDocumentIds(variety,product));
+            retVal.add(varDto);
         }
         return retVal;
     }
@@ -115,10 +115,15 @@ public class ProductService {
                 document.setEntityName(variety.getClass().getSimpleName());
                 documentService.save(document);
             }
-            var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(variety.getId(), variety.getClass().getSimpleName());
-            if (documentList.size() > 4) {
-                documentService.maintainSize(documentList);
-            }
+
+            limitDocumentSize(variety.getId(),variety.getClass().getSimpleName());
+        }
+    }
+
+    private void limitDocumentSize(String id,String entityName) {
+        var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(id, entityName);
+        if (documentList.size() > 4) {
+            documentService.maintainSize(documentList);
         }
     }
 
@@ -152,11 +157,14 @@ public class ProductService {
                ObjectMapperUtils.map(dto, varietyEntity);
                varietyEntity = varietyRepository.save(varietyEntity);
                updateDocumentIfRequired(dto, varietyEntity);
-               varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
+               var varietyDto = ObjectMapperUtils.map(varietyEntity, VarietyDto.class);
+               varietyDto.setDocumentUrls(getDocumentIds(varietyEntity,productEntity));
+               varieties.add(varietyDto);
            }
        }
        var retVal = ObjectMapperUtils.map(productEntity, ProductDto.class);
        retVal.setVarietyList(varieties);
+       retVal.setDocumentUrls(getDocumentIds(productEntity));
        return retVal;
     }
 
@@ -252,7 +260,11 @@ public class ProductService {
                     .map(Document::getId)
                     .toList();
         }
-        var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(),product.getClass().getSimpleName());
+        return getDocumentIds(product);
+    }
+
+    private List<String> getDocumentIds(Product product) {
+        var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(), product.getClass().getSimpleName());
         return productDoc.stream()
                 .map(Document::getId)
                 .toList();
