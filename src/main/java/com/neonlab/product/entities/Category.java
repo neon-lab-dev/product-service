@@ -16,18 +16,16 @@ import java.util.List;
 public class Category extends Generic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String name;
     private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "parent_id")
     @JsonIgnore
-    private Category category;
+    private Category parentCategory;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "parentCategory", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Category> subCategories=new ArrayList<>();
-
-
+    private List<Category> subCategories = new ArrayList<>();
 }
