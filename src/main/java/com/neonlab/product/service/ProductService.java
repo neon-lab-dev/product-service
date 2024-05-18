@@ -58,7 +58,7 @@ public class ProductService {
         var varieties = saveAndMapVarieties(product, productReqDto.getVarietyList());
         var retVal = ObjectMapperUtils.map(product, ProductDto.class);
         retVal.setVarietyList(varieties);
-        retVal.setDocumentUrls(getDocumentIds(product));
+        retVal.setDocumentUrls(getDocumentUrls(product));
         return retVal;
     }
 
@@ -101,7 +101,7 @@ public class ProductService {
             var variety = saveVariety(varietyDto,product);
             saveAndMapDocument(varietyDto, variety);
             var varDto = ObjectMapperUtils.map(variety, VarietyDto.class);
-            varDto.setDocumentUrls(getDocumentIds(variety,product));
+            varDto.setDocumentUrls(getDocumentUrls(variety,product));
             retVal.add(varDto);
         }
         return retVal;
@@ -120,10 +120,14 @@ public class ProductService {
         }
     }
 
-    private void limitDocumentSize(String id,String entityName) {
+    private void limitDocumentSize(String id,String entityName) throws ServerException {
         var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(id, entityName);
         if (documentList.size() > 4) {
-            documentService.maintainSize(documentList);
+            try {
+                documentService.maintainSize(documentList);
+            } catch (Exception e) {
+                throw new ServerException(e.getMessage());
+            }
         }
     }
 
@@ -158,13 +162,13 @@ public class ProductService {
                varietyEntity = varietyRepository.save(varietyEntity);
                updateDocumentIfRequired(dto, varietyEntity);
                var varietyDto = ObjectMapperUtils.map(varietyEntity, VarietyDto.class);
-               varietyDto.setDocumentUrls(getDocumentIds(varietyEntity,productEntity));
+               varietyDto.setDocumentUrls(getDocumentUrls(varietyEntity,productEntity));
                varieties.add(varietyDto);
            }
        }
        var retVal = ObjectMapperUtils.map(productEntity, ProductDto.class);
        retVal.setVarietyList(varieties);
-       retVal.setDocumentUrls(getDocumentIds(productEntity));
+       retVal.setDocumentUrls(getDocumentUrls(productEntity));
        return retVal;
     }
 
@@ -229,6 +233,7 @@ public class ProductService {
         try {
             var product = fetchById(productId);
             var dto = ObjectMapperUtils.map(product, ProductDto.class);
+            dto.setDocumentUrls(getDocumentUrls(product));
             dto.setVarietyList(varietyDtos);
             return dto;
         } catch (ServerException | InvalidInputException e) {
@@ -244,8 +249,7 @@ public class ProductService {
             var value = retVal.getOrDefault(product.getId(), new ArrayList<>());
             var dto = ObjectMapperUtils.map(variety, VarietyDto.class);
             dto.setDiscountPrice(MathUtils.getDiscountedPrice(dto.getPrice(), dto.getDiscountPercent()));
-            var docIds = getDocumentIds(variety,product);
-            dto.setDocumentUrls(docIds);
+            dto.setDocumentUrls(getDocumentUrls(variety,product));
             value.add(dto);
             retVal.put(product.getId(), value);
         } catch (ServerException e) {
@@ -253,20 +257,20 @@ public class ProductService {
         }
     }
 
-    private List<String> getDocumentIds(Variety variety, Product product){
+    private List<String> getDocumentUrls(Variety variety, Product product){
         var docs = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
         if(!CollectionUtils.isEmpty(docs)) {
             return docs.stream()
-                    .map(Document::getId)
+                    .map(Document::getUrl)
                     .toList();
         }
-        return getDocumentIds(product);
+        return getDocumentUrls(product);
     }
 
-    private List<String> getDocumentIds(Product product) {
+    private List<String> getDocumentUrls(Product product) {
         var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(), product.getClass().getSimpleName());
         return productDoc.stream()
-                .map(Document::getId)
+                .map(Document::getUrl)
                 .toList();
     }
 
