@@ -3,6 +3,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.neonlab.common.validationGroups.UpdateValidationGroup;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,5 +25,7 @@ public class ProductDto {
     @NotEmpty(message = "Product description is mandatory.")
     private String description;
     private String brand;
+    private List<MultipartFile> documents;
+    private List<String> documentUrls;
     private List<VarietyDto> varietyList;
 }
