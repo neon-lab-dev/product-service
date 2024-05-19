@@ -55,6 +55,7 @@ public class OrderService {
             var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
             var productVarietyResponse = productService.fetchProductVarietyResponse(variety);
             ObjectMapperUtils.map(productVarietyResponse, boughtProduct);
+            boughtProduct.setup();
             variety.setQuantity(variety.getQuantity() - boughtProduct.getBoughtQuantity());
             productService.saveVariety(variety);
         }
