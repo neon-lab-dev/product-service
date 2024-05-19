@@ -231,7 +231,7 @@ public class ProductService {
     private List<ProductDto> fetchProductDto(List<Variety> varieties){
         var retVal = new ArrayList<ProductDto>();
         if (!CollectionUtils.isEmpty(varieties)){
-            var productVarietyMap = new HashMap<String, List<VarietyDto>>();
+            var productVarietyMap = new LinkedHashMap<String, List<VarietyDto>>();
             varieties.forEach(variety -> constructProductIdToVarietyDtoListMap(productVarietyMap, variety));
             for (var entry : productVarietyMap.entrySet()){
                 retVal.add(constructProductDto(entry.getKey(), entry.getValue()));
