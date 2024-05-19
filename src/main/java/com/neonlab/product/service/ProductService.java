@@ -1,6 +1,7 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.config.ConfigurationKeys;
+import com.neonlab.common.constants.GlobalConstants;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
 import com.neonlab.common.models.PageableResponse;
@@ -9,6 +10,7 @@ import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.PageableUtils;
+import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
@@ -24,6 +26,7 @@ import com.neonlab.product.repository.specifications.VarietySpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
@@ -123,11 +126,7 @@ public class ProductService {
     private void limitDocumentSize(String id,String entityName) throws ServerException {
         var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(id, entityName);
         if (documentList.size() > 4) {
-            try {
-                documentService.maintainSize(documentList);
-            } catch (Exception e) {
-                throw new ServerException(e.getMessage());
-            }
+            documentService.maintainSize(documentList);
         }
     }
 
@@ -188,7 +187,11 @@ public class ProductService {
     public String deleteProduct(List<String> productIds) throws  InvalidInputException {
         for (var productId : productIds){
             var product = productRepository.findById(productId);
-            product.ifPresent(value -> productRepository.delete(product.get()));
+            if (product.isPresent()){
+                product.get().getVarieties().forEach(this::deleteAllVarietyDocuments);
+                deleteAllProductDocuments(product.get());
+                productRepository.delete(product.get());
+            }
         }
         return DELETE_MESSAGE;
     }
@@ -204,14 +207,22 @@ public class ProductService {
     }
 
     public PageableResponse<ProductDto> fetchProducts(final ProductSearchCriteria searchCriteria){
+        if (!StringUtil.isNullOrEmpty(searchCriteria.getSortByProductField())){
+            searchCriteria.setSortBy(searchCriteria.getSortByProductField());
+        }
         var pageable = PageableUtils.createPageable(searchCriteria);
         var productCodes = productRepository.findAll(
                 ProductSpecifications.buildSearchCriteria(searchCriteria),
                 pageable
         ).getContent().stream().map(Product::getCode).toList();
+        searchCriteria.setSortBy(GlobalConstants.CREATED_AT);
         searchCriteria.setCodes(productCodes);
+        if (!StringUtil.isNullOrEmpty(searchCriteria.getSortByVarietyField())){
+            searchCriteria.setSortBy(searchCriteria.getSortByVarietyField());
+        }
         var varieties = varietyRepository.findAll(
-                VarietySpecifications.buildSearchCriteria(searchCriteria)
+                VarietySpecifications.buildSearchCriteria(searchCriteria),
+                Sort.by(searchCriteria.getSortDirection(), searchCriteria.getSortBy())
         );
         var resultList = fetchProductDto(varieties);
         return new PageableResponse<>(resultList, searchCriteria);
@@ -272,6 +283,28 @@ public class ProductService {
         return productDoc.stream()
                 .map(Document::getUrl)
                 .toList();
+    }
+
+    private void deleteAllProductDocuments(Product product){
+        var docs = getDocuments(product.getId(), product.getClass().getSimpleName());
+        docs.forEach(doc -> {
+            try {
+                documentService.delete(doc);
+            } catch (ServerException ignored) {}
+        });
+    }
+
+    private void deleteAllVarietyDocuments(Variety variety){
+        var docs = getDocuments(variety.getId(), variety.getClass().getSimpleName());
+        docs.forEach(doc -> {
+            try {
+                documentService.delete(doc);
+            } catch (ServerException ignored) {}
+        });
+    }
+
+    private List<Document> getDocuments(String docIdentifier, String entityName){
+        return documentService.fetchByDocIdentifierAndEntityName(docIdentifier, entityName);
     }
 
     /**
