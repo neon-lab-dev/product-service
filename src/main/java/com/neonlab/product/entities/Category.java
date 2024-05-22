@@ -2,6 +2,7 @@ package com.neonlab.product.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.neonlab.common.entities.Generic;
+import com.neonlab.product.enums.CategoryType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,7 +19,8 @@ public class Category extends Generic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private CategoryType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
