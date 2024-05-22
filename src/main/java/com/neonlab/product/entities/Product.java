@@ -20,7 +20,6 @@ import java.util.List;
 })
 
 public class Product extends Generic {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

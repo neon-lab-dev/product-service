@@ -1,6 +1,7 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.config.ConfigurationKeys;
+import com.neonlab.common.constants.GlobalConstants;
 import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.*;
 import com.neonlab.common.models.PageableResponse;
@@ -9,6 +10,7 @@ import com.neonlab.common.services.SystemConfigService;
 import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.PageableUtils;
+import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
@@ -24,9 +26,9 @@ import com.neonlab.product.repository.specifications.VarietySpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -55,20 +57,36 @@ public class ProductService {
     private final SystemConfigService systemConfigService;
 
     public ProductDto add(ProductDto productReqDto) throws ServerException, InvalidInputException {
-        var product = save(productReqDto);
+        var product = saveAndMapDocument(productReqDto);
         var varieties = saveAndMapVarieties(product, productReqDto.getVarietyList());
         var retVal = ObjectMapperUtils.map(product, ProductDto.class);
         retVal.setVarietyList(varieties);
+        retVal.setDocumentUrls(getDocumentUrls(product));
         return retVal;
     }
 
-    private Product save(ProductDto productDto) throws ServerException, InvalidInputException {
+
+    private Product saveAndMapDocument(ProductDto productDto) throws ServerException, InvalidInputException {
         var retVal = ObjectMapperUtils.map(productDto, Product.class);
         setDefaultIfRequired(retVal);
         var user = userService.getLoggedInUser();
         retVal.setCreatedBy(user.getPrimaryPhoneNo());
         retVal.setCreatedAt(new Date());
-        return productRepository.save(retVal);
+        var product = productRepository.save(retVal);
+        mapProductDocument(productDto, product);
+        return product;
+    }
+
+    private void mapProductDocument(ProductDto productDto, Product product) throws ServerException {
+        if (!CollectionUtils.isEmpty(productDto.getDocuments())){
+            var documents = documentService.saveAll(productDto.getDocuments());
+            for (var document : documents) {
+                document.setDocIdentifier(product.getId());
+                document.setEntityName(product.getClass().getSimpleName());
+                documentService.save(document);
+            }
+            limitDocumentSize(product.getId(),product.getClass().getSimpleName());
+        }
     }
 
     private void setDefaultIfRequired(Product product){
@@ -85,7 +103,9 @@ public class ProductService {
         for (var varietyDto : varieties){
             var variety = saveVariety(varietyDto,product);
             saveAndMapDocument(varietyDto, variety);
-            retVal.add(ObjectMapperUtils.map(variety, VarietyDto.class));
+            var varDto = ObjectMapperUtils.map(variety, VarietyDto.class);
+            varDto.setDocumentUrls(getDocumentUrls(variety,product));
+            retVal.add(varDto);
         }
         return retVal;
     }
@@ -94,11 +114,20 @@ public class ProductService {
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
         if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
             var documents = documentService.saveAll(varietyDto.getDocuments());
-            for (var document : documents){
+            for (var document : documents) {
                 document.setDocIdentifier(variety.getId());
                 document.setEntityName(variety.getClass().getSimpleName());
                 documentService.save(document);
             }
+
+            limitDocumentSize(variety.getId(),variety.getClass().getSimpleName());
+        }
+    }
+
+    private void limitDocumentSize(String id,String entityName) throws ServerException {
+        var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(id, entityName);
+        if (documentList.size() > 4) {
+            documentService.maintainSize(documentList);
         }
     }
 
@@ -122,19 +151,31 @@ public class ProductService {
     @Transactional
     public ProductDto update(ProductDto product) throws ServerException, InvalidInputException {
        var productEntity = fetchById(product.getId());
+       updateDocumentIfRequired(product,productEntity);
        ObjectMapperUtils.map(product, productEntity);
        productEntity = productRepository.save(productEntity);
        var varieties = new ArrayList<VarietyDto>();
-       for (var dto : product.getVarietyList()){
-           var varietyEntity = fetchVarietyById(dto.getId());
-           ObjectMapperUtils.map(dto, varietyEntity);
-           varietyEntity = varietyRepository.save(varietyEntity);
-           updateDocumentIfRequired(dto, varietyEntity);
-           varieties.add(ObjectMapperUtils.map(varietyEntity, VarietyDto.class));
+       if(!CollectionUtils.isEmpty(product.getVarietyList())) {
+           for (var dto : product.getVarietyList()) {
+               var varietyEntity = fetchVarietyById(dto.getId());
+               ObjectMapperUtils.map(dto, varietyEntity);
+               varietyEntity = varietyRepository.save(varietyEntity);
+               updateDocumentIfRequired(dto, varietyEntity);
+               var varietyDto = ObjectMapperUtils.map(varietyEntity, VarietyDto.class);
+               varietyDto.setDocumentUrls(getDocumentUrls(varietyEntity,productEntity));
+               varieties.add(varietyDto);
+           }
        }
        var retVal = ObjectMapperUtils.map(productEntity, ProductDto.class);
        retVal.setVarietyList(varieties);
+       retVal.setDocumentUrls(getDocumentUrls(productEntity));
        return retVal;
+    }
+
+    private void updateDocumentIfRequired(ProductDto product, Product productEntity) throws InvalidInputException, ServerException {
+        if(!CollectionUtils.isEmpty(product.getDocuments())){
+            mapProductDocument(product,productEntity);
+        }
     }
 
     private void updateDocumentIfRequired(VarietyDto varietyDto, Variety variety) throws ServerException {
@@ -147,7 +188,11 @@ public class ProductService {
     public String deleteProduct(List<String> productIds) throws  InvalidInputException {
         for (var productId : productIds){
             var product = productRepository.findById(productId);
-            product.ifPresent(value -> productRepository.delete(product.get()));
+            if (product.isPresent()){
+                product.get().getVarieties().forEach(this::deleteAllVarietyDocuments);
+                deleteAllProductDocuments(product.get());
+                productRepository.delete(product.get());
+            }
         }
         return DELETE_MESSAGE;
     }
@@ -163,14 +208,22 @@ public class ProductService {
     }
 
     public PageableResponse<ProductDto> fetchProducts(final ProductSearchCriteria searchCriteria){
+        if (!StringUtil.isNullOrEmpty(searchCriteria.getSortByProductField())){
+            searchCriteria.setSortBy(searchCriteria.getSortByProductField());
+        }
         var pageable = PageableUtils.createPageable(searchCriteria);
         var productCodes = productRepository.findAll(
                 ProductSpecifications.buildSearchCriteria(searchCriteria),
                 pageable
         ).getContent().stream().map(Product::getCode).toList();
+        searchCriteria.setSortBy(GlobalConstants.CREATED_AT);
         searchCriteria.setCodes(productCodes);
+        if (!StringUtil.isNullOrEmpty(searchCriteria.getSortByVarietyField())){
+            searchCriteria.setSortBy(searchCriteria.getSortByVarietyField());
+        }
         var varieties = varietyRepository.findAll(
-                VarietySpecifications.buildSearchCriteria(searchCriteria)
+                VarietySpecifications.buildSearchCriteria(searchCriteria),
+                Sort.by(searchCriteria.getSortDirection(), searchCriteria.getSortBy())
         );
         var resultList = fetchProductDto(varieties);
         return new PageableResponse<>(resultList, searchCriteria);
@@ -179,7 +232,7 @@ public class ProductService {
     private List<ProductDto> fetchProductDto(List<Variety> varieties){
         var retVal = new ArrayList<ProductDto>();
         if (!CollectionUtils.isEmpty(varieties)){
-            var productVarietyMap = new HashMap<String, List<VarietyDto>>();
+            var productVarietyMap = new LinkedHashMap<String, List<VarietyDto>>();
             varieties.forEach(variety -> constructProductIdToVarietyDtoListMap(productVarietyMap, variety));
             for (var entry : productVarietyMap.entrySet()){
                 retVal.add(constructProductDto(entry.getKey(), entry.getValue()));
@@ -192,6 +245,7 @@ public class ProductService {
         try {
             var product = fetchById(productId);
             var dto = ObjectMapperUtils.map(product, ProductDto.class);
+            dto.setDocumentUrls(getDocumentUrls(product));
             dto.setVarietyList(varietyDtos);
             return dto;
         } catch (ServerException | InvalidInputException e) {
@@ -203,24 +257,55 @@ public class ProductService {
 
     private void constructProductIdToVarietyDtoListMap(Map<String, List<VarietyDto>> retVal, Variety variety) {
         try {
-            var productId = variety.getProduct().getId();
-            var value = retVal.getOrDefault(productId, new ArrayList<>());
+            var product = variety.getProduct();
+            var value = retVal.getOrDefault(product.getId(), new ArrayList<>());
             var dto = ObjectMapperUtils.map(variety, VarietyDto.class);
             dto.setDiscountPrice(MathUtils.getDiscountedPrice(dto.getPrice(), dto.getDiscountPercent()));
-            var docIds = getDocumentIds(variety);
-            dto.setDocumentUrls(docIds);
+            dto.setDocumentUrls(getDocumentUrls(variety,product));
             value.add(dto);
-            retVal.put(productId, value);
+            retVal.put(product.getId(), value);
         } catch (ServerException e) {
             log.warn(e.getMessage());
         }
     }
 
-    private List<String> getDocumentIds(Variety variety){
+    private List<String> getDocumentUrls(Variety variety, Product product){
         var docs = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
-        return docs.stream()
-                .map(Document::getId)
+        if(!CollectionUtils.isEmpty(docs)) {
+            return docs.stream()
+                    .map(Document::getUrl)
+                    .toList();
+        }
+        return getDocumentUrls(product);
+    }
+
+    private List<String> getDocumentUrls(Product product) {
+        var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(), product.getClass().getSimpleName());
+        return productDoc.stream()
+                .map(Document::getUrl)
                 .toList();
+    }
+
+    private void deleteAllProductDocuments(Product product){
+        var docs = getDocuments(product.getId(), product.getClass().getSimpleName());
+        docs.forEach(doc -> {
+            try {
+                documentService.delete(doc);
+            } catch (ServerException ignored) {}
+        });
+    }
+
+    private void deleteAllVarietyDocuments(Variety variety){
+        var docs = getDocuments(variety.getId(), variety.getClass().getSimpleName());
+        docs.forEach(doc -> {
+            try {
+                documentService.delete(doc);
+            } catch (ServerException ignored) {}
+        });
+    }
+
+    private List<Document> getDocuments(String docIdentifier, String entityName){
+        return documentService.fetchByDocIdentifierAndEntityName(docIdentifier, entityName);
     }
 
     /**

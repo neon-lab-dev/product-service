@@ -69,6 +69,14 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
      * filter by product maximum price
      */
     private Integer quantity;
+    /**
+     * sort by product field
+     */
+    private String sortByProductField;
+    /**
+     * sort by variety field
+     */
+    private String sortByVarietyField;
 
     @Builder(builderMethodName = "productSearchCriteriaBuilder")
     public ProductSearchCriteria(
@@ -85,7 +93,9 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
             final int pageNo,
             final String sortBy,
             final Direction sortDirection,
-            final Integer quantity
+            final Integer quantity,
+            final String sortByProductField,
+            final String sortByVarietyField
             ){
         super(perPage, pageNo, sortBy, sortDirection);
         this.name = name;
@@ -98,6 +108,8 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
         this.minimumPrice = minimumPrice;
         this.maximumPrice = maximumPrice;
         this.quantity = quantity;
+        this.sortByProductField = sortByProductField;
+        this.sortByVarietyField = sortByVarietyField;
     }
 
 
