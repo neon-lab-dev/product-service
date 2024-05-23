@@ -9,12 +9,14 @@ public class EntityConstant {
         public static final String BRAND = "brand";
         public static final String CODE = "code";
         public static final String VARIETIES = "varieties";
+        public static final String ENTITY_NAME = "Product";
     }
     public static class Variety{
         public static final String PRODUCT = "product";
         public static final String PRICE = "price";
         public static final String DESCRIPTION = "description";
         public static final String QUANTITY = "quantity";
+        public static final String ENTITY_NAME = "Variety";
     }
 
     public static class Order{
