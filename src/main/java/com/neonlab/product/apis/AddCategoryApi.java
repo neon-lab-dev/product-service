@@ -22,7 +22,7 @@ public class AddCategoryApi {
 
     public ApiOutput<CategoryDto> add(CategoryDto categoryDto)  {
         try{
-            validationUtils.validate(categoryDto);
+            validation(categoryDto);
             return new ApiOutput<>(HttpStatus.OK.value(), "Category Added Successful",categoryService.add(categoryDto));
         } catch (Exception e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -30,4 +30,10 @@ public class AddCategoryApi {
 
     }
 
+    public void validation(CategoryDto categoryDto) throws InvalidInputException {
+        validationUtils.validate(categoryDto);
+        if(categoryService.isCategoryNameSame(categoryDto.getName())){
+            throw new InvalidInputException("Category name must be unique");
+        }
+    }
 }

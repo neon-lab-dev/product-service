@@ -19,7 +19,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CategoryDto {
     @NotEmpty(message = "Category Name Must not be empty")
-    @UniqueCategoryName
     private String name;
     private String type="root";
     private MultipartFile document;

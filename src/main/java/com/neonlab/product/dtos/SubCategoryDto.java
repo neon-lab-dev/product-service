@@ -17,7 +17,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubCategoryDto {
     @NotEmpty(message = "SubCategoryDto Name Must not be empty")
-    @UniqueCategoryName
     private String name;
     private String type="non_root";
     private MultipartFile document;

@@ -23,7 +23,6 @@ public class Category extends Generic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(name = "name",unique = true, nullable = false)
-    @NotBlank(message = "Name is Mandatory")
     private String name;
     private String type;
 
