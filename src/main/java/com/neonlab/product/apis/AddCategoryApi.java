@@ -10,31 +10,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @Loggable
 @RequiredArgsConstructor
 public class AddCategoryApi {
 
-    private final ValidationUtils validationUtils;
     private final CategoryService categoryService;
+    private final ValidationUtils validationUtils;
 
     public ApiOutput<CategoryDto> add(CategoryDto categoryDto)  {
         try{
-            validate(categoryDto);
+            validationUtils.validate(categoryDto);
             return new ApiOutput<>(HttpStatus.OK.value(), "Category Added Successful",categoryService.add(categoryDto));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
 
     }
 
-    private void validate(CategoryDto categoryDto) throws InvalidInputException {
-        try {
-            validationUtils.validate(categoryDto);
-        } catch (Exception e) {
-            throw new InvalidInputException(e.getMessage());
-        }
-
-    }
 }
