@@ -5,8 +5,10 @@ import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.utilities.ObjectMapperUtils;
+import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.*;
 import com.neonlab.product.entities.Category;
+import com.neonlab.product.enums.CategoryType;
 import com.neonlab.product.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Optional;
 
 @Service
 @Loggable
@@ -173,5 +175,35 @@ public class CategoryService {
     private Category findByName(String name) {
         return categoryRepository.findByName(name)
                 .orElse(null);
+    }
+
+//    public List<CategoryDto> get(String name) throws ServerException {
+//        List<CategoryDto> retVal = new ArrayList<>();
+//        if(StringUtil.isNullOrEmpty(name)){
+//            retVal = getRootList();
+//        }
+//        else{
+//            retVal.add(getCategoryByName(name));
+//        }
+//        return retVal;
+//    }
+
+//    private List<CategoryDto> getRootList() throws ServerException {
+//        List<Category> categoryList = categoryRepository.findAll();
+//        List<CategoryDto> retVal = new ArrayList<>();
+//        for(Category category:categoryList){
+//            if(category.getType() == CategoryType.ROOT){
+//                retVal.add(ObjectMapperUtils.map(category,CategoryDto.class));
+//            }
+//        }
+//        return retVal;
+//    }
+
+    private CategoryDto getCategoryByName(String name) throws ServerException {
+        Optional<Category> categoryOptional = categoryRepository.findByName(name);
+        if(categoryOptional.isEmpty()){
+            throw new ServerException("Category with given name does not exist.");
+        }
+        return ObjectMapperUtils.map(categoryOptional.get(),CategoryDto.class);
     }
 }
