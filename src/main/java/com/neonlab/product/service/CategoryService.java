@@ -97,10 +97,10 @@ public class CategoryService {
     }
 
     private CategoryDto getCategoryByName(String name) throws ServerException {
-        Optional<Category> categoryOptional = categoryRepository.findByName(name);
-        if(categoryOptional.isEmpty()){
-            throw new ServerException("Category with given name does not exist.");
+        Optional<Category> optionalCategory = categoryRepository.findByName(name);
+        if(optionalCategory.isEmpty()){
+            throw new ServerException("Category with given name does not exist");
         }
-        return ObjectMapperUtils.map(categoryOptional.get(),CategoryDto.class);
+        return ObjectMapperUtils.map(optionalCategory.get(),CategoryDto.class);
     }
 }

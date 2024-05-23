@@ -18,7 +18,7 @@ import java.util.List;
 public class FetchCategoryApi {
     @Autowired
     private ValidationUtils validationUtils;
-
+    @Autowired
     private CategoryService categoryService;
     public ApiOutput<?> get(String name){
         try {
