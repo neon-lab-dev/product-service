@@ -111,6 +111,7 @@ public class ProductService {
         return retVal;
     }
 
+
     private void saveAndMapDocument(VarietyDto varietyDto, Variety variety) throws ServerException {
         if (!CollectionUtils.isEmpty(varietyDto.getDocuments())){
             var documents = documentService.saveAll(varietyDto.getDocuments());
@@ -127,7 +128,7 @@ public class ProductService {
     private void limitDocumentSize(String id,String entityName) throws ServerException {
         var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(id, entityName);
         if (documentList.size() > 4) {
-            documentService.maintainSize(documentList);
+            documentService.maintainSize(documentList,4);
         }
     }
 
