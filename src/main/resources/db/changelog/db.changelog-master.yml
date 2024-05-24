@@ -3,3 +3,5 @@ databaseChangeLog:
       file: classpath:/db/changelog/changes/1_system_configurations.sql
   - include:
       file: classpath:/db/changelog/changes/2_system_user.sql
+  - include:
+      file: classpath:/db/changelog/changes/3_imagekit.sql

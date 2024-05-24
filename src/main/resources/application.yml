@@ -7,13 +7,12 @@ spring:
     url: jdbc:mysql://${DB_HOST_PORT}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-
   jpa:
     hibernate:
       ddl-auto: update
     database: MYSQL
   liquibase:
-    enabled: true
+    enabled: ${LIQUIBASE_ENABLED}
     change-log: classpath:/db/changelog/db.changelog-master.yml
 
 #file related configuration

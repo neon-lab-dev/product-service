@@ -21,12 +21,12 @@ public class FetchCategoryApi {
     @Autowired
     private CategoryService categoryService;
     public ApiOutput<?> get(String name){
-        try {
-            List<CategoryDto> retVal = categoryService.get(name);
-            return new ApiOutput<>(HttpStatus.OK.value(), null,retVal);
-        } catch (ServerException e) {
-            return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        }
+//        try {
+//            List<CategoryDto> retVal = categoryService.get(name);
+            return new ApiOutput<>(HttpStatus.OK.value(), null,null);
+//        } catch (ServerException e) {
+          //  return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+
     }
 
 }
