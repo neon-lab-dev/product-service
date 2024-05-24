@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -52,7 +53,7 @@ public class CategoryService {
 
     private Category save(CategoryDto categoryDto) throws ServerException {
         var category = ObjectMapperUtils.map(categoryDto, Category.class);
-        if (categoryDto.getType().equals("root")) {
+        if (categoryDto.getType().equals(CategoryType.ROOT.getType())) {
             category.setParentCategory(null);
         }
         return categoryRepository.save(category);
@@ -166,7 +167,7 @@ public class CategoryService {
         return retVal;
     }
 
-    public boolean isCategoryNameSame(String name) throws InvalidInputException {
+    public boolean isCategoryNameSame(String name) {
         var categoryWithSameName = findByName(name);
         if (categoryWithSameName == null) return false;
         return categoryWithSameName.getName().equals(name);
@@ -177,33 +178,44 @@ public class CategoryService {
                 .orElse(null);
     }
 
-//    public List<CategoryDto> get(String name) throws ServerException {
-//        List<CategoryDto> retVal = new ArrayList<>();
-//        if(StringUtil.isNullOrEmpty(name)){
-//            retVal = getRootList();
-//        }
-//        else{
-//            retVal.add(getCategoryByName(name));
-//        }
-//        return retVal;
-//    }
-
-//    private List<CategoryDto> getRootList() throws ServerException {
-//        List<Category> categoryList = categoryRepository.findAll();
-//        List<CategoryDto> retVal = new ArrayList<>();
-//        for(Category category:categoryList){
-//            if(category.getType() == CategoryType.ROOT){
-//                retVal.add(ObjectMapperUtils.map(category,CategoryDto.class));
-//            }
-//        }
-//        return retVal;
-//    }
-
-    private CategoryDto getCategoryByName(String name) throws ServerException {
-        Optional<Category> optionalCategory = categoryRepository.findByName(name);
-        if(optionalCategory.isEmpty()){
-            throw new ServerException("Category with given name does not exist");
+    public List<CategoryDto> get(String name){
+        if(StringUtil.isNullOrEmpty(name)){
+            return getRootList();
         }
-        return ObjectMapperUtils.map(optionalCategory.get(),CategoryDto.class);
+        else{
+            return getCategoryByName(name);
+        }
+    }
+
+    private List<CategoryDto> getRootList() {
+        return categoryRepository.findByType(CategoryType.ROOT.getType()).stream()
+                .map(category -> {
+                    try {
+                        return ObjectMapperUtils.map(category, CategoryDto.class);
+                    } catch (ServerException e) {
+                        return null;
+                    }
+                }).
+                filter(Objects::nonNull)
+                .toList();
+    }
+
+    private List<CategoryDto> getCategoryByName(String name){
+        var categoryMayBe = categoryRepository.findByName(name);
+        if (categoryMayBe.isPresent()){
+            var category = categoryMayBe.get();
+            return category.getSubCategories().stream()
+                    .map(subCategory -> {
+                        try {
+                            return ObjectMapperUtils.map(subCategory, CategoryDto.class);
+                        } catch (ServerException e) {
+                            return null;
+                        }
+                    }).
+                    filter(Objects::nonNull).
+                    toList();
+        } else {
+            return new ArrayList<>();
+        }
     }
 }
