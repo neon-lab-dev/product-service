@@ -1,20 +1,23 @@
 package com.neonlab.product.service;
 import com.neonlab.common.annotations.Loggable;
+import com.neonlab.common.entities.Document;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
+import com.neonlab.common.services.DocumentService;
 import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.common.utilities.StringUtil;
 import com.neonlab.product.dtos.*;
 import com.neonlab.product.entities.Category;
 import com.neonlab.product.enums.CategoryType;
 import com.neonlab.product.repository.CategoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 
 @Service
 @Loggable
@@ -23,13 +26,28 @@ public class CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private DocumentService documentService;
 
+    @Transactional(rollbackOn = {InvalidInputException.class, ServerException.class})
     public CategoryDto add(CategoryDto categoryDto) throws InvalidInputException, ServerException {
         var category = save(categoryDto);
         var subCategoryDtos = saveSubCategories(category, categoryDto.getSubCategoryDtoList());
+        saveAndMapDocument(category, categoryDto);
         var retVal = ObjectMapperUtils.map(category, CategoryDto.class);
         retVal.setSubCategoryDtoList(subCategoryDtos);
+        retVal.setDocumentUrl(getDocumentUrl(category));
         return retVal;
+    }
+
+    private void saveAndMapDocument(Category category, CategoryDto categoryDto) throws ServerException {
+        maintainDocSize(category);
+        if (categoryDto.getDocument() != null) {
+            var doc = documentService.save(categoryDto.getDocument());
+            doc.setDocIdentifier(String.valueOf(category.getId()));
+            doc.setEntityName(category.getClass().getSimpleName());
+            documentService.save(doc);
+        }
     }
 
     private Category save(CategoryDto categoryDto) throws ServerException {
@@ -46,55 +64,140 @@ public class CategoryService {
             var subCategory = saveSubCategory(subCategoryDto, parentCategory);
             var subSubCategoryDtos = saveSubCategory2s(subCategory, subCategoryDto.getSubCategory2DtoList());
             var savedSubCategoryDto = ObjectMapperUtils.map(subCategory, SubCategoryDto.class);
+            saveAndMapDocument(subCategory, subCategoryDto);
             savedSubCategoryDto.setSubCategory2DtoList(subSubCategoryDtos);
+            savedSubCategoryDto.setDocumentUrl(getDocumentUrl(subCategory));
             savedSubCategoryDtos.add(savedSubCategoryDto);
         }
         return savedSubCategoryDtos;
     }
 
+    private void saveAndMapDocument(Category subCategory, SubCategoryDto subCategoryDto) throws ServerException {
+        maintainDocSize(subCategory);
+        if (subCategoryDto.getDocument() != null) {
+            var doc = documentService.save(subCategoryDto.getDocument());
+            doc.setDocIdentifier(String.valueOf(subCategory.getId()));
+            doc.setEntityName(subCategory.getClass().getSimpleName());
+            documentService.save(doc);
+        }
+    }
+
     private Category saveSubCategory(SubCategoryDto subCategoryDto, Category parentCategory) throws ServerException, InvalidInputException {
-        var subCategory = ObjectMapperUtils.map(subCategoryDto, Category.class);
-        subCategory.setParentCategory(parentCategory);
-        return categoryRepository.save(subCategory);
+        if (subCategoryDto.getName() != null && !isCategoryNameSame(subCategoryDto.getName())) {
+            var subCategory = ObjectMapperUtils.map(subCategoryDto, Category.class);
+            subCategory.setParentCategory(parentCategory);
+            return categoryRepository.save(subCategory);
+        }
+        throw new InvalidInputException("subCategory name must be unique "+subCategoryDto.getName());
     }
 
     private List<SubCategory2Dto> saveSubCategory2s(Category parentCategory, List<SubCategory2Dto> subCategory2Dtos) throws ServerException, InvalidInputException {
         List<SubCategory2Dto> savedSubCategory2Dtos = new ArrayList<>();
-        for (SubCategory2Dto subCategory2Dto : subCategory2Dtos) {
-            var subCategory2 = saveSubCategory2(subCategory2Dto, parentCategory);
-            var savedSubCategory2Dto = ObjectMapperUtils.map(subCategory2, SubCategory2Dto.class);
-            savedSubCategory2Dtos.add(savedSubCategory2Dto);
+        if(!CollectionUtils.isEmpty(subCategory2Dtos)) {
+            for (SubCategory2Dto subCategory2Dto : subCategory2Dtos) {
+                var subCategory2 = saveSubCategory2(subCategory2Dto, parentCategory);
+                var savedSubCategory2Dto = ObjectMapperUtils.map(subCategory2, SubCategory2Dto.class);
+                saveAndMapDocument(subCategory2, subCategory2Dto);
+                savedSubCategory2Dto.setDocumentUrl(getDocumentUrl(subCategory2));
+                savedSubCategory2Dtos.add(savedSubCategory2Dto);
+            }
         }
         return savedSubCategory2Dtos;
     }
 
+    private void saveAndMapDocument(Category subCategory2, SubCategory2Dto subCategory2Dto) throws ServerException {
+        maintainDocSize(subCategory2);
+        if (subCategory2Dto.getDocument() != null) {
+            var doc = documentService.save(subCategory2Dto.getDocument());
+            doc.setDocIdentifier(String.valueOf(subCategory2.getId()));
+            doc.setEntityName(subCategory2.getClass().getSimpleName());
+            documentService.save(doc);
+        }
+    }
+
+    private void maintainDocSize(Category subCategory2) throws ServerException {
+        var existingDocs = documentService.fetchByDocIdentifierAndEntityName(
+                String.valueOf(subCategory2.getId()), subCategory2.getClass().getSimpleName());
+        for (var doc : existingDocs) {
+            documentService.delete(doc);
+        }
+    }
+
     private Category saveSubCategory2(SubCategory2Dto subCategory2Dto, Category parentCategory) throws ServerException, InvalidInputException {
-        var subCategory2 = ObjectMapperUtils.map(subCategory2Dto, Category.class);
-        subCategory2.setParentCategory(parentCategory);
-        return categoryRepository.save(subCategory2);
+        if (subCategory2Dto.getName() != null && !isCategoryNameSame(subCategory2Dto.getName())) {
+            var subCategory2 = ObjectMapperUtils.map(subCategory2Dto, Category.class);
+            subCategory2.setParentCategory(parentCategory);
+            return categoryRepository.save(subCategory2);
+        }
+        throw new InvalidInputException("SubCategory2Dto name must be unique "+subCategory2Dto.getName());
     }
 
-    public List<CategoryDto> get(String name) throws ServerException {
-        List<CategoryDto> retVal = new ArrayList<>();
-        if(StringUtil.isNullOrEmpty(name)){
-            retVal = getRootList();
+    private String getDocumentUrl(Category category) {
+        var categoryDoc = documentService.fetchByDocIdentifierAndEntityName(String.valueOf(category.getId()), category.getClass().getSimpleName());
+        return categoryDoc.stream()
+                .map(Document::getUrl)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Transactional(rollbackOn = {InvalidInputException.class, ServerException.class})
+    public CategoryDto update(CategoryDto categoryDto) throws InvalidInputException, ServerException {
+        var existingCategory = categoryRepository.findByName(categoryDto.getName())
+                .orElseThrow(() -> new InvalidInputException("Category not found"));
+
+        System.out.println(existingCategory+" <-existing Category");
+        if (categoryDto.getName() != null) {
+            existingCategory.setName(categoryDto.getName());
         }
-        else{
-            retVal.add(getCategoryByName(name));
+
+        if (categoryDto.getDocument() != null) {
+            saveAndMapDocument(existingCategory, categoryDto);
         }
+
+        var updatedCategory = categoryRepository.save(existingCategory);
+        var retVal = ObjectMapperUtils.map(updatedCategory, CategoryDto.class);
+
+        if (!CollectionUtils.isEmpty(categoryDto.getSubCategoryDtoList())) {
+            var subCategoryDtos = saveSubCategories(updatedCategory, categoryDto.getSubCategoryDtoList());
+            retVal.setSubCategoryDtoList(subCategoryDtos);
+        }
+
+        retVal.setDocumentUrl(getDocumentUrl(updatedCategory));
         return retVal;
     }
 
-    private List<CategoryDto> getRootList() throws ServerException {
-        List<Category> categoryList = categoryRepository.findAll();
-        List<CategoryDto> retVal = new ArrayList<>();
-        for(Category category:categoryList){
-            if(category.getType() == CategoryType.ROOT){
-                retVal.add(ObjectMapperUtils.map(category,CategoryDto.class));
-            }
-        }
-        return retVal;
+    public boolean isCategoryNameSame(String name) throws InvalidInputException {
+        var categoryWithSameName = findByName(name);
+        if (categoryWithSameName == null) return false;
+        return categoryWithSameName.getName().equals(name);
     }
+
+    private Category findByName(String name) {
+        return categoryRepository.findByName(name)
+                .orElse(null);
+    }
+
+//    public List<CategoryDto> get(String name) throws ServerException {
+//        List<CategoryDto> retVal = new ArrayList<>();
+//        if(StringUtil.isNullOrEmpty(name)){
+//            retVal = getRootList();
+//        }
+//        else{
+//            retVal.add(getCategoryByName(name));
+//        }
+//        return retVal;
+//    }
+
+//    private List<CategoryDto> getRootList() throws ServerException {
+//        List<Category> categoryList = categoryRepository.findAll();
+//        List<CategoryDto> retVal = new ArrayList<>();
+//        for(Category category:categoryList){
+//            if(category.getType() == CategoryType.ROOT){
+//                retVal.add(ObjectMapperUtils.map(category,CategoryDto.class));
+//            }
+//        }
+//        return retVal;
+//    }
 
     private CategoryDto getCategoryByName(String name) throws ServerException {
         Optional<Category> optionalCategory = categoryRepository.findByName(name);

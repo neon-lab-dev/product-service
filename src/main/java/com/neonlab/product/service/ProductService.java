@@ -11,6 +11,7 @@ import com.neonlab.common.services.UserService;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.common.utilities.StringUtil;
+import com.neonlab.product.constants.EntityConstant;
 import com.neonlab.product.dtos.ProductDto;
 import com.neonlab.product.dtos.VarietyDto;
 import com.neonlab.product.entities.Product;
@@ -127,7 +128,7 @@ public class ProductService {
     private void limitDocumentSize(String id,String entityName) throws ServerException {
         var documentList = documentService.fetchByDocIdentifierAndEntityNameAsc(id, entityName);
         if (documentList.size() > 4) {
-            documentService.maintainSize(documentList);
+            documentService.maintainSize(documentList,4);
         }
     }
 
@@ -270,7 +271,7 @@ public class ProductService {
     }
 
     private List<String> getDocumentUrls(Variety variety, Product product){
-        var docs = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
+        var docs = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), EntityConstant.Variety.ENTITY_NAME);
         if(!CollectionUtils.isEmpty(docs)) {
             return docs.stream()
                     .map(Document::getUrl)
@@ -280,14 +281,14 @@ public class ProductService {
     }
 
     private List<String> getDocumentUrls(Product product) {
-        var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(), product.getClass().getSimpleName());
+        var productDoc = documentService.fetchByDocIdentifierAndEntityName(product.getId(), EntityConstant.Product.ENTITY_NAME);
         return productDoc.stream()
                 .map(Document::getUrl)
                 .toList();
     }
 
     private void deleteAllProductDocuments(Product product){
-        var docs = getDocuments(product.getId(), product.getClass().getSimpleName());
+        var docs = getDocuments(product.getId(), EntityConstant.Product.ENTITY_NAME);
         docs.forEach(doc -> {
             try {
                 documentService.delete(doc);
@@ -296,7 +297,7 @@ public class ProductService {
     }
 
     private void deleteAllVarietyDocuments(Variety variety){
-        var docs = getDocuments(variety.getId(), variety.getClass().getSimpleName());
+        var docs = getDocuments(variety.getId(), EntityConstant.Variety.ENTITY_NAME);
         docs.forEach(doc -> {
             try {
                 documentService.delete(doc);
@@ -317,16 +318,13 @@ public class ProductService {
      */
     public ProductVarietyResponse fetchProductVarietyResponse(Variety variety) throws InvalidInputException {
         var product = fetchById(variety.getProduct().getId());
-        var documents = documentService.fetchByDocIdentifierAndEntityName(variety.getId(), variety.getClass().getSimpleName());
-        var documentIds = documents.stream()
-                .map(Document::getId)
-                .toList();
+        var documentUrls = getDocumentUrls(variety, variety.getProduct());
         var config = systemConfigService.getSystemConfig(ConfigurationKeys.DELIVERY_CHARGE);
         var deliveryCharge = BigDecimal.valueOf(Integer.parseInt(config.getValue()));
         return ProductVarietyResponse.buildByProductVarietyAndDocuments()
                 .product(product)
                 .variety(variety)
-                .documents(documentIds)
+                .documents(documentUrls)
                 .deliveryCharges(deliveryCharge)
                 .build();
     }
