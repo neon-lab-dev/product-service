@@ -36,8 +36,8 @@ public class CategoryController {
 
     @GetMapping("/fetch")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<?> fetch(@RequestParam String name){
-        return fetchCategoryApi.get(name);
+    public ApiOutput<?> fetch(@RequestParam(value = "name",required = false) String name){
+        return fetchCategoryApi.process(name);
     }
 
 }
