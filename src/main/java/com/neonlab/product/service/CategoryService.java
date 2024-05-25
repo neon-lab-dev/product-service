@@ -107,7 +107,7 @@ public class CategoryService {
     }
 
     private void saveAndMapDocument(Category subCategory2, SubCategory2Dto subCategory2Dto) throws ServerException {
-        documentService.maintainSize(List.of(subCategory2Dto));
+        maintainDocSize(subCategory2);
         if (subCategory2Dto.getDocument() != null) {
             var doc = documentService.save(subCategory2Dto.getDocument());
             doc.setDocIdentifier(String.valueOf(subCategory2.getId()));
