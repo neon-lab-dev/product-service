@@ -18,7 +18,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 @Service
 @Loggable
@@ -146,7 +147,7 @@ public class CategoryService {
         var existingCategory = categoryRepository.findByName(categoryDto.getName())
                 .orElseThrow(() -> new InvalidInputException("Category not found"));
 
-        System.out.println(existingCategory+" <-existing Category");
+
         if (categoryDto.getName() != null) {
             existingCategory.setName(categoryDto.getName());
         }
@@ -216,6 +217,62 @@ public class CategoryService {
                     toList();
         } else {
             return new ArrayList<>();
+        }
+    }
+
+
+
+    public List<CategoryDto> getAll() throws ServerException {
+        List<Category> categoryListMayBe = categoryRepository.findAll();
+        return categoryListMayBe.stream()
+                .map(this::mapCategoryToCategoryDto)
+                .collect(Collectors.toList());
+    }
+
+
+    private CategoryDto mapCategoryToCategoryDto(Category category) {
+        try {
+            var categoryDto = ObjectMapperUtils.
+                    map(category,CategoryDto.class);
+            categoryDto.setDocumentUrl(getDocumentUrl(category));
+            if(category.getSubCategories() != null){
+                List<SubCategoryDto> subCategoryDtos = category.getSubCategories()
+                        .stream().map(this::mapCategoryToSubCategoryDto)
+                        .toList();
+                categoryDto.setSubCategoryDtoList(subCategoryDtos);
+            }
+            return categoryDto;
+        }catch (ServerException e){
+            return null;
+        }
+    }
+
+
+    private SubCategoryDto mapCategoryToSubCategoryDto(Category subCategory) {
+        try {
+            var subCategoryDto = ObjectMapperUtils.map(subCategory, SubCategoryDto.class);
+            subCategoryDto.setDocumentUrl(getDocumentUrl(subCategory));
+
+            if (subCategory.getSubCategories() != null) {
+                List<SubCategory2Dto> subCategory2Dtos = subCategory.getSubCategories()
+                        .stream().map(this::mapCategoryToSubCategory2Dto)
+                        .toList();
+                subCategoryDto.setSubCategory2DtoList(subCategory2Dtos);
+            }
+
+            return subCategoryDto;
+        }catch (ServerException e){
+            return null;
+        }
+    }
+
+    private SubCategory2Dto mapCategoryToSubCategory2Dto(Category subCategory2)  {
+        try {
+            var subCategory2Dto = ObjectMapperUtils.map(subCategory2, SubCategory2Dto.class);
+            subCategory2Dto.setDocumentUrl(getDocumentUrl(subCategory2));
+            return subCategory2Dto;
+        }catch (ServerException e){
+            return null;
         }
     }
 }
