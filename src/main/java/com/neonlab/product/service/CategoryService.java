@@ -223,7 +223,7 @@ public class CategoryService {
 
 
     public List<CategoryDto> getAll() throws ServerException {
-        List<Category> categoryListMayBe = categoryRepository.findAll();
+        List<Category> categoryListMayBe = categoryRepository.findByType(CategoryType.ROOT.getType());
         return categoryListMayBe.stream()
                 .map(this::mapCategoryToCategoryDto)
                 .collect(Collectors.toList());
