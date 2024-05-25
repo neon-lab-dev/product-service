@@ -107,7 +107,7 @@ public class CategoryService {
     }
 
     private void saveAndMapDocument(Category subCategory2, SubCategory2Dto subCategory2Dto) throws ServerException {
-        maintainDocSize(subCategory2);
+        documentService.maintainSize(List.of(subCategory2Dto));
         if (subCategory2Dto.getDocument() != null) {
             var doc = documentService.save(subCategory2Dto.getDocument());
             doc.setDocIdentifier(String.valueOf(subCategory2.getId()));
@@ -142,11 +142,14 @@ public class CategoryService {
     }
 
     @Transactional(rollbackOn = {InvalidInputException.class, ServerException.class})
-    public CategoryDto update(CategoryDto categoryDto) throws InvalidInputException, ServerException {
-        var existingCategory = categoryRepository.findByName(categoryDto.getName())
+    public CategoryDto update(String existingCategoryName,CategoryDto categoryDto) throws InvalidInputException, ServerException {
+        var existingCategory = categoryRepository.findByName(existingCategoryName)
                 .orElseThrow(() -> new InvalidInputException("Category not found"));
 
-        System.out.println(existingCategory+" <-existing Category");
+        if (ifTryingToChangeType(categoryDto,existingCategory)){
+            throw new InvalidInputException("You cannot change type of any category");
+        }
+
         if (categoryDto.getName() != null) {
             existingCategory.setName(categoryDto.getName());
         }
@@ -165,6 +168,15 @@ public class CategoryService {
 
         retVal.setDocumentUrl(getDocumentUrl(updatedCategory));
         return retVal;
+    }
+
+    private boolean ifTryingToChangeType(CategoryDto categorydto,Category category){
+        if(StringUtil.isNullOrEmpty(categorydto.getType()) || !category.getType().equals(categorydto.getType())){
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
     public boolean isCategoryNameSame(String name) {

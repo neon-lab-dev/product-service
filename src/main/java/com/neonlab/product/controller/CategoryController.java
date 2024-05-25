@@ -30,8 +30,8 @@ public class CategoryController {
 
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ApiOutput<CategoryDto> update(@ModelAttribute CategoryDto categoryDto){
-        return updateCategoryApi.update(categoryDto);
+    public ApiOutput<CategoryDto> update(@RequestParam String existingCategoryName,@ModelAttribute CategoryDto categoryDto){
+        return updateCategoryApi.update(existingCategoryName,categoryDto);
     }
 
     @GetMapping("/fetch")
