@@ -17,7 +17,7 @@ import java.util.List;
 public class SubCategoryDto {
     @NotEmpty(message = "SubCategoryDto Name Must not be empty")
     private String name;
-    private String type= CategoryType.NON_ROOT.getType();
+    private String type;
     private MultipartFile document;
     private String documentUrl;
     @NotEmpty(message = "Subcategory2 list must not be empty")

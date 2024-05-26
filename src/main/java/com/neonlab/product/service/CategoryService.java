@@ -172,7 +172,7 @@ public class CategoryService {
     }
 
     private boolean ifTryingToChangeType(CategoryDto categorydto,Category category){
-        return !StringUtil.isNullOrEmpty(categorydto.getType()) && category.getType().equals(categorydto.getType());
+        return !StringUtil.isNullOrEmpty(categorydto.getType()) && !category.getType().equals(categorydto.getType());
     }
 
     public boolean isCategoryNameSame(String name) {
