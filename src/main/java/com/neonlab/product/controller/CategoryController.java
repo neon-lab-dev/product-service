@@ -42,7 +42,7 @@ public class CategoryController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> getAll(){
         return getAllCategoryApi.getAll();
     }
