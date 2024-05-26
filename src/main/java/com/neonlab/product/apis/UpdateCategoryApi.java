@@ -14,9 +14,9 @@ public class UpdateCategoryApi {
     @Autowired
     private CategoryService categoryService;
 
-    public ApiOutput<CategoryDto> update(CategoryDto categoryDto) {
+    public ApiOutput<CategoryDto> update(String existingCategoryName,CategoryDto categoryDto) {
         try {
-            return new ApiOutput<>(HttpStatus.OK.value(),"Category Updated Successfully",categoryService.update(categoryDto));
+            return new ApiOutput<>(HttpStatus.OK.value(),"Category Updated Successfully",categoryService.update(existingCategoryName, categoryDto));
         }catch (InvalidInputException | ServerException e){
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }

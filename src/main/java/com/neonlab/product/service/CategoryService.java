@@ -143,10 +143,13 @@ public class CategoryService {
     }
 
     @Transactional(rollbackOn = {InvalidInputException.class, ServerException.class})
-    public CategoryDto update(CategoryDto categoryDto) throws InvalidInputException, ServerException {
-        var existingCategory = categoryRepository.findByName(categoryDto.getName())
+    public CategoryDto update(String existingCategoryName,CategoryDto categoryDto) throws InvalidInputException, ServerException {
+        var existingCategory = categoryRepository.findByName(existingCategoryName)
                 .orElseThrow(() -> new InvalidInputException("Category not found"));
 
+        if (ifTryingToChangeType(categoryDto,existingCategory)){
+            throw new InvalidInputException("You cannot change type of any category");
+        }
 
         if (categoryDto.getName() != null) {
             existingCategory.setName(categoryDto.getName());
@@ -166,6 +169,10 @@ public class CategoryService {
 
         retVal.setDocumentUrl(getDocumentUrl(updatedCategory));
         return retVal;
+    }
+
+    private boolean ifTryingToChangeType(CategoryDto categorydto,Category category){
+        return !StringUtil.isNullOrEmpty(categorydto.getType()) && !category.getType().equals(categorydto.getType());
     }
 
     public boolean isCategoryNameSame(String name) {
