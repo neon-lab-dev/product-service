@@ -56,6 +56,7 @@ public class ProductService {
     private final UserService userService;
     private final VarietyRepository varietyRepository;
     private final SystemConfigService systemConfigService;
+    private final CategoryService categoryService;
 
     public ProductDto add(ProductDto productReqDto) throws ServerException, InvalidInputException {
         var product = saveAndMapDocument(productReqDto);
@@ -355,6 +356,19 @@ public class ProductService {
                                 .build()
                 ));
         return new ProductReportModel(totalProducts, outOfStockCount);
+    }
+
+    public void validateCategory(ProductDto productDto) throws InvalidInputException {
+        if(!categoryService.isExistingCategory(productDto.getCategory())){
+            throw new InvalidInputException("category does not exist with name "+productDto.getCategory());
+        }
+        if(!categoryService.isExistingCategory(productDto.getSubCategory())){
+            throw new InvalidInputException("subCategory does not exist with name "+productDto.getSubCategory());
+        }
+        if(!categoryService.isExistingCategory(productDto.getSubCategory2())){
+            throw new InvalidInputException("subCategory2 does not exist with name "+productDto.getSubCategory2());
+        }
+
     }
 
 }

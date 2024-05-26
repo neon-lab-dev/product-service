@@ -16,10 +16,8 @@ spring:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.yml
 
-#file related configuration
+  #file related configuration
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-
-

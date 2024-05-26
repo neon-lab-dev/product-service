@@ -4,6 +4,7 @@ import com.neonlab.common.annotations.Loggable;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.product.apis.AddCategoryApi;
 import com.neonlab.product.apis.FetchCategoryApi;
+import com.neonlab.product.apis.GetAllCategoryApi;
 import com.neonlab.product.apis.UpdateCategoryApi;
 import com.neonlab.product.dtos.CategoryDto;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,8 @@ public class CategoryController {
 
     private final AddCategoryApi addCategoryApi;
     private final UpdateCategoryApi updateCategoryApi;
-
     private final FetchCategoryApi fetchCategoryApi;
+    private final GetAllCategoryApi getAllCategoryApi;
 
     @PostMapping("/add")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -40,4 +41,9 @@ public class CategoryController {
         return fetchCategoryApi.process(name);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ApiOutput<?> getAll(){
+        return getAllCategoryApi.getAll();
+    }
 }

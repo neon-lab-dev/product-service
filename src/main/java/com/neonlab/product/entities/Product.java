@@ -15,6 +15,7 @@ import java.util.List;
         @Index(name = "idx_name" ,columnList = "name"),
         @Index(name = "idx_category",columnList = "category"),
         @Index(name = "Idx_sub_category",columnList = "sub_category"),
+        @Index(name = "Idx_sub_category2",columnList = "sub_category2"),
         @Index(name = "idx_brand",columnList = "brand"),
         @Index(name = "idx_code",columnList = "code")
 })
@@ -31,6 +32,8 @@ public class Product extends Generic {
     private String code;
     @Column(name = "sub_category",nullable = false)
     private String subCategory;
+    @Column(name = "sub_category2",nullable = false)
+    private String subCategory2;
     @Column(name = "description",nullable = false)
     private String description;
     @Column(name = "brand")

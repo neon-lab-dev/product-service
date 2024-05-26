@@ -32,6 +32,11 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
     private String subCategory;
 
     /**
+     * filter by product sub-category2
+     */
+    private String subCategory2;
+
+    /**
      * filter by product brand
      */
     private String brand;
@@ -83,6 +88,7 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
             final String name,
             final String category,
             final String subCategory,
+            final String subCategory2,
             final String brand,
             final List<String> codes,
             final VarietyType varietyType,
@@ -101,6 +107,7 @@ public class ProductSearchCriteria extends PageableSearchCriteria {
         this.name = name;
         this.category = category;
         this.subCategory = subCategory;
+        this.subCategory2 = subCategory2;
         this.brand = brand;
         this.codes = codes;
         this.varietyType = varietyType;
