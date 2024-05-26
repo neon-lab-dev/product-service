@@ -27,6 +27,9 @@ public class ProductSpecifications {
         if (!StringUtil.isNullOrEmpty(searchCriteria.getSubCategory())){
             retVal = retVal.and(filterBySubCategoryLike(searchCriteria.getSubCategory()));
         }
+        if (!StringUtil.isNullOrEmpty(searchCriteria.getSubCategory2())){
+            retVal = retVal.and(filterBySubCategory2Like(searchCriteria.getSubCategory2()));
+        }
         if (!StringUtil.isNullOrEmpty(searchCriteria.getBrand())){
             retVal = retVal.and(filterByBrandLike(searchCriteria.getBrand()));
         }
@@ -67,6 +70,12 @@ public class ProductSpecifications {
     private static Specification<Product> filterBySubCategoryLike(final String subCategory){
         return ((root, query, criteriaBuilder) ->
                 criteriaBuilder.like(root.get(SUB_CATEGORY), withLikePattern(subCategory))
+        );
+    }
+
+    private static Specification<Product> filterBySubCategory2Like(final String subCategory2){
+        return ((root, query, criteriaBuilder) ->
+                criteriaBuilder.like(root.get(SUB_CATEGORY2), withLikePattern(subCategory2))
         );
     }
 

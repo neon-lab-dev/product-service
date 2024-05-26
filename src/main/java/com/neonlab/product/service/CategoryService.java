@@ -275,4 +275,8 @@ public class CategoryService {
             return null;
         }
     }
+
+    public boolean isExistingCategory(String category) {
+        return categoryRepository.existsByName(category);
+    }
 }
