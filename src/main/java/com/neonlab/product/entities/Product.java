@@ -31,6 +31,8 @@ public class Product extends Generic {
     private String code;
     @Column(name = "sub_category",nullable = false)
     private String subCategory;
+    @Column(name = "sub_category2",nullable = false)
+    private String subCategory2;
     @Column(name = "description",nullable = false)
     private String description;
     @Column(name = "brand")
