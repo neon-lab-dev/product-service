@@ -15,6 +15,7 @@ import java.util.List;
         @Index(name = "idx_name" ,columnList = "name"),
         @Index(name = "idx_category",columnList = "category"),
         @Index(name = "Idx_sub_category",columnList = "sub_category"),
+        @Index(name = "Idx_sub_category2",columnList = "sub_category2"),
         @Index(name = "idx_brand",columnList = "brand"),
         @Index(name = "idx_code",columnList = "code")
 })
