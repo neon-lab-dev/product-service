@@ -42,5 +42,6 @@ public class AddProductApi {
         if (productService.existingProduct(product.getCode())){
             throw new InvalidInputException("Product already exists with the code "+product.getCode());
         }
+        productService.validateCategory(product);
     }
 }

@@ -1,6 +1,7 @@
 package com.neonlab.product.dtos;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.neonlab.common.validationGroups.UpdateValidationGroup;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,8 @@ public class ProductDto {
     private String category;
     @NotEmpty(message = "Product sub-category is mandatory.")
     private String subCategory;
+    @NotEmpty(message = "Product sub-category2 is mandatory.")
+    private String subCategory2;
     @NotEmpty(message = "Product description is mandatory.")
     private String description;
     private String brand;

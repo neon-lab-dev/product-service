@@ -2,6 +2,7 @@ package com.neonlab.product.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.neonlab.product.annotations.UniqueCategoryName;
+import com.neonlab.product.enums.CategoryType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.List;
 public class CategoryDto {
     @NotEmpty(message = "Category Name Must not be empty")
     private String name;
-    private String type="root";
+    private String type;
     private MultipartFile document;
     private String documentUrl;
     @NotEmpty(message = "Subcategory must not be empty or null")
