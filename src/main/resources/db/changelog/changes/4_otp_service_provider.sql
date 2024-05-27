@@ -1,6 +1,6 @@
 --liquibase formatted sql
 --changeset ritik:otp-service-provider
---comment: setting up TeleSign
+--comment: setting up 2factor
 
 
 INSERT INTO `system_config`
