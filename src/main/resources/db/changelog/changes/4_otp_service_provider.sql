@@ -8,6 +8,6 @@ INSERT INTO `system_config`
 VALUES
 (5, '2024-05-07 05:29:17', 'ritik', 0, '2024-05-07 05:29:17', 'ritik', 'otp.provider.config'
 , '{
-       "customerId" : "C7E8EFDE-4EE9-4B72-9F72-3A290029C682",
-       "apiKey" : "ae1alJtLoscigyy6PMMtul6tvJtSLLDi3otXdSL8WvLqF1jH8ohsdIDlxKms/WwlsqNJr4mMy58oFp8cJFZxkg=="
-}');
+          "apiKey" : "e33c7a87-1c16-11ef-8b60-0200cd936042",
+          "voiceOtpUrl" : "https://2factor.in/API/V1/%s/SMS/+91%s/%s"
+ }');
