@@ -1,5 +1,6 @@
 package com.neonlab.product.dtos;
 import com.neonlab.common.utilities.MathUtils;
+import com.neonlab.product.enums.Units;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class BoughtProductDetailsDto {
     private BigDecimal discountedPrice;
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer boughtQuantity;
+    private String value;
+    private Units unit;
     private BigDecimal boughtPrice;
     private BigDecimal savings;
     private List<String> documents = new ArrayList<>();
