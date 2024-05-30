@@ -7,3 +7,5 @@ databaseChangeLog:
       file: classpath:/db/changelog/changes/3_imagekit.sql
   - include:
       file: classpath:/db/changelog/changes/4_otp_service_provider.sql
+  - include:
+      file: classpath:/db/changelog/changes/5_payment_provider_setup.sql
