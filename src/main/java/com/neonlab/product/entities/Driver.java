@@ -1,6 +1,7 @@
 package com.neonlab.product.entities;
 
 import com.neonlab.common.entities.Generic;
+import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.product.dtos.DriverDto;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -35,6 +36,11 @@ public class Driver extends Generic {
         this.contactNo= driverDto.getContactNo();
         this.vehicleNo= driverDto.getVehicleNo();
         this.available=true;
+    }
+
+    @Override
+    public String toString(){
+        return JsonUtils.jsonOf(this);
     }
 
 }

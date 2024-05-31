@@ -5,17 +5,18 @@ import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.UserDto;
 import com.neonlab.common.entities.Order;
 import com.neonlab.common.enums.OrderStatus;
+import com.neonlab.common.enums.PaymentMode;
 import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.StringUtil;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +42,8 @@ public class OrderDto {
     private UserDto userDetailsDto;
     private AddressDto shippingInfo;
     private DriverDto driverDetailsDto;
+    @NotNull(message = "PaymentMode is not null")
+    private PaymentMode paymentMode;
 
     public void setup(){
         var allDiscountedPrice = this.boughtProductDetailsList.stream()
