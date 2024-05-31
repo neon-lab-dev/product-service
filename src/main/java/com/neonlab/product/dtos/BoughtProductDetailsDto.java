@@ -1,7 +1,4 @@
 package com.neonlab.product.dtos;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.product.enums.Units;
 import jakarta.validation.constraints.Min;
@@ -33,11 +30,6 @@ public class BoughtProductDetailsDto {
     public void setup(){
         this.boughtPrice = this.discountedPrice.multiply(BigDecimal.valueOf(this.boughtQuantity)).setScale(MathUtils.DEFAULT_SCALE);
         this.savings = (this.price.subtract(this.discountedPrice)).multiply(BigDecimal.valueOf(this.boughtQuantity)).setScale(MathUtils.DEFAULT_SCALE);
-    }
-
-    @Override
-    public String toString(){
-        return JsonUtils.jsonOf(this);
     }
 
 }
