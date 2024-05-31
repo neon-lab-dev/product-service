@@ -22,11 +22,10 @@ public enum Units {
     @JsonCreator
     public static Units fromString(String inputUnit) throws InvalidInputException {
         for (Units unit : Units.values()) {
-            if (unit.unit.equalsIgnoreCase(inputUnit)) {
+            if (unit.unit.equalsIgnoreCase(inputUnit) || unit.name().equalsIgnoreCase(inputUnit)) {
                 return unit;
             }
         }
         throw new InvalidInputException("Unknown unit: " + inputUnit);
     }
-
 }
