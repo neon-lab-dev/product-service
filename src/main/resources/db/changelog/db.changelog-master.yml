@@ -11,3 +11,7 @@ databaseChangeLog:
       file: classpath:/db/changelog/changes/5_payment_provider_setup.sql
   - include:
       file: classpath:/db/changelog/changes/6_add_password_admin.sql
+  - include:
+      file: classpath:/db/changelog/changes/7_webhook_implementation.sql
+  - include:
+      file: classpath:/db/changelog/changes/8_setting_payment_expiry.sql
