@@ -4,7 +4,7 @@ import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.models.PaymentRequest;
 import com.neonlab.common.models.razorpay.WebhookPaymentModel;
-import com.neonlab.product.apis.FetchPaymentLinkApi;
+import com.neonlab.product.apis.FetchPaymentApi;
 import com.neonlab.product.apis.WebHookPaymentUpdateApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final FetchPaymentLinkApi fetchPaymentLinkApi;
+    private final FetchPaymentApi fetchPaymentApi;
     private final WebHookPaymentUpdateApi webHookPaymentUpdateApi;
 
-    @GetMapping("/get/payment-link")
-    public ApiOutput<?> getPaymentLink(final PaymentRequest request){
-        return fetchPaymentLinkApi.process(request);
+    @GetMapping("/get")
+    public ApiOutput<?> getPayment(final PaymentRequest request){
+        return fetchPaymentApi.process(request);
     }
 
     @PostMapping("/webhook/update")

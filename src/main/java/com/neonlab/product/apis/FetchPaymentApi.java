@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @Loggable
-public class FetchPaymentLinkApi {
+public class FetchPaymentApi {
 
     @Autowired private PaymentServiceProvider serviceProvider;
 
