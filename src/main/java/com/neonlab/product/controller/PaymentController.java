@@ -31,7 +31,6 @@ public class PaymentController {
             @RequestHeader("x-razorpay-event-id") String eventId,
             @RequestBody String body
             ) throws InvalidInputException {
-        log.info(String.format("Signature %s | eventId %s | body %s", signature, eventId, body));
         webHookPaymentUpdateApi.process(new WebhookPaymentModel(signature, eventId, body));
         return new ApiOutput<>(HttpStatus.OK.value(), null, "Ok");
     }
