@@ -2,6 +2,7 @@ package com.neonlab.product.repository.specifications;
 
 import com.neonlab.common.entities.Order;
 import com.neonlab.common.enums.OrderStatus;
+import com.neonlab.common.enums.PaymentMode;
 import com.neonlab.product.models.searchCriteria.OrderSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
@@ -35,6 +36,9 @@ public class OrderSpecifications {
         if (Objects.nonNull(searchCriteria.getOrderStatus())){
             retVal = retVal.and(filterByOrderStatus(searchCriteria.getOrderStatus()));
         }
+        if (Objects.nonNull(searchCriteria.getPaymentMode())){
+            retVal = retVal.and(filterByPaymentMode(searchCriteria.getPaymentMode()));
+        }
         return retVal;
     }
 
@@ -63,6 +67,10 @@ public class OrderSpecifications {
     private static Specification<Order> filterByOrderStatus(final OrderStatus orderStatus){
         return ((root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(ORDER_STATUS), orderStatus));
+    }
+    private static Specification<Order> filterByPaymentMode(final PaymentMode paymentMode){
+        return ((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(PAYMENT_MODE), paymentMode));
     }
 
     private static String withLikePattern(String str){

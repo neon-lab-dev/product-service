@@ -1,6 +1,7 @@
 package com.neonlab.product.models.searchCriteria;
 
 import com.neonlab.common.enums.OrderStatus;
+import com.neonlab.common.enums.PaymentMode;
 import com.neonlab.common.models.searchCriteria.PageableSearchCriteria;
 import lombok.Builder;
 import lombok.Data;
@@ -50,11 +51,19 @@ public class OrderSearchCriteria extends PageableSearchCriteria {
      */
     private boolean admin;
 
+    /**
+     * search by paymentMode
+     */
+    private PaymentMode paymentMode;
+
+
+
     @Builder(builderMethodName = "orderSearchCriteriaBuilder")
     public OrderSearchCriteria(
             final String orderId,
             final List<String> varietyIds,
             final OrderStatus orderStatus,
+            final PaymentMode paymentMode,
             final BigDecimal minPrice,
             final BigDecimal maxPrice,
             final String userId,
@@ -68,11 +77,10 @@ public class OrderSearchCriteria extends PageableSearchCriteria {
         this.orderId = orderId;
         this.varietyIds = varietyIds;
         this.orderStatus = orderStatus;
+        this.paymentMode = paymentMode;
         this.minPrice = minPrice;
         this.maxPrice = maxPrice;
         this.userId = userId;
         this.admin = admin;
     }
-
-
 }
