@@ -30,5 +30,4 @@ public class FetchPaymentLinkApi {
             return new ApiOutput<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
         }
     }
-
 }
