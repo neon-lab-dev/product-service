@@ -143,6 +143,10 @@ public class ProductService {
         if(Objects.isNull(entity.getDiscountPercent())){
             entity.setDiscountPercent(BigDecimal.valueOf(0));
         }
+        if(Objects.isNull(entity.getDiscountPrice())){
+            entity.setDiscountPrice(BigDecimal.ZERO);
+        }
+        entity.setDiscountPercent(MathUtils.getDiscountPercent(entity.getPrice(),entity.getDiscountPrice()));
         return varietyRepository.save(entity);
     }
 
@@ -161,6 +165,7 @@ public class ProductService {
            for (var dto : product.getVarietyList()) {
                var varietyEntity = fetchVarietyById(dto.getId());
                ObjectMapperUtils.map(dto, varietyEntity);
+               varietyEntity.setDiscountPercent(MathUtils.getDiscountPercent(varietyEntity.getPrice(),varietyEntity.getDiscountPrice()));
                varietyEntity = varietyRepository.save(varietyEntity);
                updateDocumentIfRequired(dto, varietyEntity);
                var varietyDto = ObjectMapperUtils.map(varietyEntity, VarietyDto.class);
@@ -262,7 +267,6 @@ public class ProductService {
             var product = variety.getProduct();
             var value = retVal.getOrDefault(product.getId(), new ArrayList<>());
             var dto = ObjectMapperUtils.map(variety, VarietyDto.class);
-            dto.setDiscountPrice(MathUtils.getDiscountedPrice(dto.getPrice(), dto.getDiscountPercent()));
             dto.setDocumentUrls(getDocumentUrls(variety,product));
             value.add(dto);
             retVal.put(product.getId(), value);
