@@ -50,7 +50,7 @@ public class ProductVarietyResponse {
         this.varietyDescription = variety.getDescription();
         this.price = variety.getPrice();
         this.discountPercent = variety.getDiscountPercent();
-        this.discountedPrice = MathUtils.getDiscountedPrice(this.price, variety.getDiscountPercent());
+        this.discountedPrice = variety.getDiscountPrice();
         this.deliveryCharges = deliveryCharges;
         this.quantity = variety.getQuantity();
         this.documents = documents;

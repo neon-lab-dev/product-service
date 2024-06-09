@@ -39,6 +39,8 @@ public class Variety extends Generic {
     private BigDecimal price;
     @Column(name = "discount_percent", columnDefinition = "decimal(38,2) default 0.0")
     private BigDecimal discountPercent;
+    @Column(name = "discount_price", columnDefinition = "decimal(38,2) default 0.0")
+    private BigDecimal discountPrice;
     @Column(name = "quantity",nullable = false)
     private Integer quantity;
     @ManyToOne(fetch = FetchType.LAZY)
