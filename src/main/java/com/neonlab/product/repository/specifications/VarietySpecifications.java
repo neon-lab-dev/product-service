@@ -32,6 +32,9 @@ public class VarietySpecifications {
         if (!StringUtil.isNullOrEmpty(searchCriteria.getSubCategory())){
             retVal = retVal.and(filterBySubCategory(searchCriteria.getSubCategory()));
         }
+        if (!StringUtil.isNullOrEmpty(searchCriteria.getSubCategory2())){
+            retVal = retVal.and(filterBySubCategory2(searchCriteria.getSubCategory2()));
+        }
         if (!StringUtil.isNullOrEmpty(searchCriteria.getBrand())){
             retVal = retVal.and(filterByBrand(searchCriteria.getBrand()));
         }
@@ -82,6 +85,15 @@ public class VarietySpecifications {
             Join<Variety, Product> productVarietyJoin = root.join(PRODUCT);
             return criteriaBuilder.like(productVarietyJoin.get(SUB_CATEGORY), withLikePattern(subCategory));
         }
+        );
+    }
+
+    private static Specification<Variety> filterBySubCategory2(final String subCategory2){
+        return ((root, query, criteriaBuilder) ->
+            {
+                Join<Variety, Product> productVarietyJoin = root.join(PRODUCT);
+                return criteriaBuilder.like(productVarietyJoin.get(SUB_CATEGORY2), withLikePattern(subCategory2));
+            }
         );
     }
 
