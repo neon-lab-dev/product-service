@@ -223,6 +223,9 @@ public class ProductService {
                 ProductSpecifications.buildSearchCriteria(searchCriteria),
                 pageable
         ).getContent().stream().map(Product::getCode).toList();
+        if (productCodes.isEmpty()) {
+            return new PageableResponse<>(Collections.emptyList(), searchCriteria);
+        }
         searchCriteria.setSortBy(GlobalConstants.CREATED_AT);
         searchCriteria.setCodes(productCodes);
         if (!StringUtil.isNullOrEmpty(searchCriteria.getSortByVarietyField())){
