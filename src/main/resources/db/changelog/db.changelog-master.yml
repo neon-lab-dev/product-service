@@ -15,3 +15,5 @@ databaseChangeLog:
       file: classpath:/db/changelog/changes/7_webhook_implementation.sql
   - include:
       file: classpath:/db/changelog/changes/8_setting_payment_expiry.sql
+  - include:
+      file: classpath:/db/changelog/changes/9_change_datatype_description.sql
