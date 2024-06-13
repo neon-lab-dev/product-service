@@ -81,7 +81,7 @@ public class OrderService {
     }
 
     private void setupAddressDto(OrderDto orderDto) throws InvalidInputException, ServerException {
-        if(orderDto.getShippingInfo() != null) {
+        if(Objects.nonNull(orderDto.getShippingInfo())) {
             var address = addressService.fetchById(orderDto.getShippingInfo().getId());
             var addressDto = ObjectMapperUtils.map(address, AddressDto.class);
             orderDto.setShippingInfo(addressDto);
