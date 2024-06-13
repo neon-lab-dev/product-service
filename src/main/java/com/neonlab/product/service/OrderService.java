@@ -239,4 +239,20 @@ public class OrderService {
         return new OrderReportModel(totalOrders, countPerStatus);
     }
 
+    public OrderDto evaluate(OrderDto orderDto) throws InvalidInputException, JsonParseException, ServerException {
+        var user = userService.getLoggedInUser();
+        orderDto.setUserDetailsDto(new UserDto(user.getId()));
+        for (var boughtProduct : orderDto.getBoughtProductDetailsList()){
+            var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
+            var productVarietyResponse = productService.fetchProductVarietyResponse(variety);
+            ObjectMapperUtils.map(productVarietyResponse, boughtProduct);
+            boughtProduct.setup();
+            variety.setQuantity(variety.getQuantity() - boughtProduct.getBoughtQuantity());
+        }
+        setDeliveryCharge(orderDto);
+        orderDto.setup();
+        setUpDtos(orderDto);
+        return orderDto;
+    }
+
 }

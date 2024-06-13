@@ -1,4 +1,5 @@
 package com.neonlab.product.dtos;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.neonlab.common.dto.AddressDto;
@@ -25,6 +26,7 @@ import java.util.Objects;
 
 @Data
 @Slf4j
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDto {
 
     private String id;
