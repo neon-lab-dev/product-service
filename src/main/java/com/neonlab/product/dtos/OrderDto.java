@@ -1,4 +1,5 @@
 package com.neonlab.product.dtos;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.neonlab.common.dto.AddressDto;
@@ -9,6 +10,7 @@ import com.neonlab.common.enums.PaymentMode;
 import com.neonlab.common.utilities.JsonUtils;
 import com.neonlab.common.utilities.MathUtils;
 import com.neonlab.common.utilities.StringUtil;
+import com.neonlab.common.validationGroups.AddOrderValidationGroup;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -25,10 +27,11 @@ import java.util.Objects;
 
 @Data
 @Slf4j
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDto {
 
     private String id;
-    @NotEmpty(message = "Payment id should not be empty")
+    @NotEmpty(groups = AddOrderValidationGroup.class, message = "Payment id should not be empty")
     private String paymentId;
     @Valid
     private List<BoughtProductDetailsDto> boughtProductDetailsList;
@@ -42,7 +45,7 @@ public class OrderDto {
     private UserDto userDetailsDto;
     private AddressDto shippingInfo;
     private DriverDto driverDetailsDto;
-    @NotNull(message = "PaymentMode is not null")
+    @NotNull(groups = AddOrderValidationGroup.class, message = "PaymentMode is not null")
     private PaymentMode paymentMode;
 
     public void setup(){

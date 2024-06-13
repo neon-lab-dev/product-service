@@ -81,9 +81,11 @@ public class OrderService {
     }
 
     private void setupAddressDto(OrderDto orderDto) throws InvalidInputException, ServerException {
-        var address = addressService.fetchById(orderDto.getShippingInfo().getId());
-        var addressDto = ObjectMapperUtils.map(address, AddressDto.class);
-        orderDto.setShippingInfo(addressDto);
+        if(Objects.nonNull(orderDto.getShippingInfo())) {
+            var address = addressService.fetchById(orderDto.getShippingInfo().getId());
+            var addressDto = ObjectMapperUtils.map(address, AddressDto.class);
+            orderDto.setShippingInfo(addressDto);
+        }
     }
 
     private void setupDriverDto(OrderDto orderDto) throws InvalidInputException, ServerException {
@@ -135,7 +137,7 @@ public class OrderService {
         validateUserAndAddress(orderDto);
     }
 
-    private void validateVarietyIds(OrderDto orderDto) throws InvalidInputException {
+    public void validateVarietyIds(OrderDto orderDto) throws InvalidInputException {
         for (var boughtProduct : orderDto.getBoughtProductDetailsList()){
             var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
             if (boughtProduct.getBoughtQuantity() > variety.getQuantity()){
@@ -237,6 +239,22 @@ public class OrderService {
             countPerStatus.put(orderStatus, value);
         }
         return new OrderReportModel(totalOrders, countPerStatus);
+    }
+
+    public OrderDto evaluate(OrderDto orderDto) throws InvalidInputException, JsonParseException, ServerException {
+        var user = userService.getLoggedInUser();
+        orderDto.setUserDetailsDto(new UserDto(user.getId()));
+        for (var boughtProduct : orderDto.getBoughtProductDetailsList()){
+            var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
+            var productVarietyResponse = productService.fetchProductVarietyResponse(variety);
+            ObjectMapperUtils.map(productVarietyResponse, boughtProduct);
+            boughtProduct.setup();
+            variety.setQuantity(variety.getQuantity() - boughtProduct.getBoughtQuantity());
+        }
+        setDeliveryCharge(orderDto);
+        orderDto.setup();
+        setUpDtos(orderDto);
+        return orderDto;
     }
 
 }

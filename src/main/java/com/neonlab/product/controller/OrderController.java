@@ -1,10 +1,7 @@
 package com.neonlab.product.controller;
 import com.neonlab.common.dto.ApiOutput;
 import com.neonlab.common.expectations.InvalidInputException;
-import com.neonlab.product.apis.CancelOrderApi;
-import com.neonlab.product.apis.CreateOrderApi;
-import com.neonlab.product.apis.FetchOrderApi;
-import com.neonlab.product.apis.UpdateOrderApi;
+import com.neonlab.product.apis.*;
 import com.neonlab.product.dtos.OrderDto;
 import com.neonlab.product.models.requests.UpdateOrderRequest;
 import com.neonlab.product.models.searchCriteria.OrderSearchCriteria;
@@ -22,6 +19,7 @@ public class OrderController {
     private final UpdateOrderApi updateOrderApi;
     private final CancelOrderApi cancelOrderApi;
     private final FetchOrderApi fetchOrderApi;
+    private final EvaluateOrderApi evaluateOrderApi;
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
@@ -53,5 +51,11 @@ public class OrderController {
     public ApiOutput<?> getOrder(final OrderSearchCriteria searchCriteria) throws InvalidInputException {
         searchCriteria.setAdmin(false);
         return fetchOrderApi.process(searchCriteria);
+    }
+
+    @GetMapping("/evaluate")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ApiOutput<?> evaluateOrder(final @RequestBody OrderDto orderDto){
+        return evaluateOrderApi.evaluate(orderDto);
     }
 }

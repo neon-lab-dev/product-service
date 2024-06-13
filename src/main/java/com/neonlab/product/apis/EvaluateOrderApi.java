@@ -14,34 +14,23 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class CreateOrderApi {
-
+public class EvaluateOrderApi {
     @Autowired
-    private OrderService orderService;
+    OrderService orderService;
     @Autowired
-    private ValidationUtils validationUtils;
+    ValidationUtils validationUtils;
 
-    public ApiOutput<?> create(OrderDto orderDto) {
+    public ApiOutput<?> evaluate(OrderDto orderDto) {
         try {
             validate(orderDto);
-            return new ApiOutput<>(HttpStatus.OK.value(), null, orderService.createOrder(orderDto));
+            return new ApiOutput<>(HttpStatus.OK.value(), null, orderService.evaluate(orderDto));
         } catch (ConstraintViolationException | InvalidInputException | ServerException | JsonParseException e) {
             return new ApiOutput<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
 
     private void validate(OrderDto orderDto) throws InvalidInputException {
-        validationUtils.validate(orderDto, AddOrderValidationGroup.class);
-        /*if(orderService.paymentIdExist(orderDto.getPaymentId())){
-            throw new InvalidInputException("Order with same payment id exist.");
-        }*/
-        try {
-            validationUtils.validate(orderDto.getShippingInfo(), AddOrderValidationGroup.class);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidInputException("Shipping details is mandatory.");
-        }
-
-        orderService.createOrderValidations(orderDto);
+        validationUtils.validate(orderDto);
+        orderService.validateVarietyIds(orderDto);
     }
-
 }
