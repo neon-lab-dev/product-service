@@ -13,7 +13,8 @@ public enum Units {
     L("large"),
     XL("extra large"),
     M("medium"),
-    RS("rs");
+    RS("rs"),
+    ML("ml");
     private final String unit;
     Units(String unit) {
         this.unit = unit;

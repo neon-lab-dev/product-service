@@ -13,7 +13,8 @@ public enum VarietyType {
     SIZE("size"),
     WEIGHT("weight"),
     PACK_OF("pack of"),
-    PRICE("price");
+    PRICE("price"),
+    LITER("liter");
 
     private final String value;
 
