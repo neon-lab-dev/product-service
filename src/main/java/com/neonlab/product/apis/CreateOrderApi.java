@@ -31,7 +31,7 @@ public class CreateOrderApi {
     }
 
     private void validate(OrderDto orderDto) throws InvalidInputException {
-        validationUtils.validate(orderDto);
+        validationUtils.validate(orderDto, AddOrderValidationGroup.class);
         /*if(orderService.paymentIdExist(orderDto.getPaymentId())){
             throw new InvalidInputException("Order with same payment id exist.");
         }*/

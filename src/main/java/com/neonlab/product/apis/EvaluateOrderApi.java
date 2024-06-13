@@ -31,6 +31,6 @@ public class EvaluateOrderApi {
 
     private void validate(OrderDto orderDto) throws InvalidInputException {
         validationUtils.validate(orderDto);
-        orderService.createOrderValidations(orderDto);
+        orderService.validateVarietyIds(orderDto);
     }
 }

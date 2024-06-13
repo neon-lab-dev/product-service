@@ -81,9 +81,11 @@ public class OrderService {
     }
 
     private void setupAddressDto(OrderDto orderDto) throws InvalidInputException, ServerException {
-        var address = addressService.fetchById(orderDto.getShippingInfo().getId());
-        var addressDto = ObjectMapperUtils.map(address, AddressDto.class);
-        orderDto.setShippingInfo(addressDto);
+        if(orderDto.getShippingInfo() != null) {
+            var address = addressService.fetchById(orderDto.getShippingInfo().getId());
+            var addressDto = ObjectMapperUtils.map(address, AddressDto.class);
+            orderDto.setShippingInfo(addressDto);
+        }
     }
 
     private void setupDriverDto(OrderDto orderDto) throws InvalidInputException, ServerException {
@@ -135,7 +137,7 @@ public class OrderService {
         validateUserAndAddress(orderDto);
     }
 
-    private void validateVarietyIds(OrderDto orderDto) throws InvalidInputException {
+    public void validateVarietyIds(OrderDto orderDto) throws InvalidInputException {
         for (var boughtProduct : orderDto.getBoughtProductDetailsList()){
             var variety = productService.fetchVarietyById(boughtProduct.getVarietyId());
             if (boughtProduct.getBoughtQuantity() > variety.getQuantity()){
