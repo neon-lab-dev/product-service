@@ -31,12 +31,6 @@ public class EvaluateOrderApi {
 
     private void validate(OrderDto orderDto) throws InvalidInputException {
         validationUtils.validate(orderDto);
-        try {
-            validationUtils.validate(orderDto.getShippingInfo(), AddOrderValidationGroup.class);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidInputException("Shipping details is mandatory.");
-        }
-
         orderService.createOrderValidations(orderDto);
     }
 }
