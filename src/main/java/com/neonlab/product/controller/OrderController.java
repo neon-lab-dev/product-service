@@ -53,7 +53,7 @@ public class OrderController {
         return fetchOrderApi.process(searchCriteria);
     }
 
-    @GetMapping("/evaluate")
+    @PostMapping("/evaluate")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiOutput<?> evaluateOrder(final @RequestBody OrderDto orderDto){
         return evaluateOrderApi.evaluate(orderDto);
