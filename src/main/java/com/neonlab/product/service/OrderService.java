@@ -70,7 +70,6 @@ public class OrderService {
 
     public void validatePaymentId(String paymentId) throws InvalidInputException {
         var payment = paymentRecordService.fetchByExternalId(paymentId);
-        System.out.println(payment);
     }
 
     private void setUpDtos(OrderDto orderDto) throws InvalidInputException, ServerException {
