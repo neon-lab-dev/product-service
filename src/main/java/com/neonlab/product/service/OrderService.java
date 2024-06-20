@@ -9,9 +9,7 @@ import com.neonlab.common.entities.Address;
 import com.neonlab.common.enums.OrderStatus;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
-import com.neonlab.common.services.AddressService;
-import com.neonlab.common.services.SystemConfigService;
-import com.neonlab.common.services.UserService;
+import com.neonlab.common.services.*;
 import com.neonlab.common.utilities.ObjectMapperUtils;
 import com.neonlab.common.utilities.PageableUtils;
 import com.neonlab.common.utilities.StringUtil;
@@ -46,6 +44,7 @@ public class OrderService {
     private final UserService userService;
     private final AddressService addressService;
     private final SystemConfigService systemConfigService;
+    private final PaymentRecordService paymentRecordService;
 
     @Transactional
     public OrderDto createOrder(OrderDto orderDto) throws InvalidInputException, ServerException, JsonParseException {
@@ -66,6 +65,10 @@ public class OrderService {
         orderDto = OrderDto.parse(order);
         setUpDtos(orderDto);
         return orderDto;
+    }
+
+    public void validatePaymentId(String paymentId) throws InvalidInputException {
+        var payment = paymentRecordService.fetchByExternalId(paymentId);
     }
 
     private void setUpDtos(OrderDto orderDto) throws InvalidInputException, ServerException {
