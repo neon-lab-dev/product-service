@@ -7,7 +7,6 @@ import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.UserDto;
 import com.neonlab.common.entities.Address;
 import com.neonlab.common.enums.OrderStatus;
-import com.neonlab.common.enums.PaymentMode;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.services.*;
