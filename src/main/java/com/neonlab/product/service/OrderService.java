@@ -7,6 +7,7 @@ import com.neonlab.common.dto.AddressDto;
 import com.neonlab.common.dto.UserDto;
 import com.neonlab.common.entities.Address;
 import com.neonlab.common.enums.OrderStatus;
+import com.neonlab.common.enums.PaymentMode;
 import com.neonlab.common.expectations.InvalidInputException;
 import com.neonlab.common.expectations.ServerException;
 import com.neonlab.common.services.*;
@@ -230,6 +231,7 @@ public class OrderService {
     public OrderReportModel getReport(){
         var totalOrders = orderRepository.count();
         var countPerStatus = new HashMap<OrderStatus, Long>();
+        var countPerPaymentMode = new HashMap<PaymentMode, Long>();
         for (var orderStatus : OrderStatus.values()){
             var value = orderRepository.count(
                     OrderSpecifications.buildSearchCriteria(
@@ -241,7 +243,18 @@ public class OrderService {
             );
             countPerStatus.put(orderStatus, value);
         }
-        return new OrderReportModel(totalOrders, countPerStatus);
+        for (var paymentMode : PaymentMode.values()){
+            var value = orderRepository.count(
+                    OrderSpecifications.buildSearchCriteria(
+                            OrderSearchCriteria.orderSearchCriteriaBuilder()
+                                    .admin(true)
+                                    .paymentMode(paymentMode)
+                                    .build()
+                    )
+            );
+            countPerPaymentMode.put(paymentMode, value);
+        }
+        return new OrderReportModel(totalOrders, countPerStatus,countPerPaymentMode);
     }
 
     public OrderDto evaluate(OrderDto orderDto) throws InvalidInputException, JsonParseException, ServerException {

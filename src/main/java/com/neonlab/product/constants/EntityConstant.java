@@ -26,6 +26,7 @@ public class EntityConstant {
         public static final String TOTAL_COST = "totalCost";
         public static final String ORDER_STATUS = "orderStatus";
         public static final String ADDRESS_ID = "addressId";
+        public static final String PAYMENT_MODE = "paymentMode";
     }
 
     public static class Address{
